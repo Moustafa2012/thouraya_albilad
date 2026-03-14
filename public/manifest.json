@@ -1,0 +1,11 @@
+{
+  "name": "Albilad App",
+  "short_name": "Albilad",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111827",
+  "icons": []
+}
+

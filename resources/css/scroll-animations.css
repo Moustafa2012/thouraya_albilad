@@ -1,0 +1,348 @@
+/* ============================================================
+   STORYTELLING SCROLL ANIMATIONS
+   Pure CSS keyframes + JS Intersection Observer triggers
+   No color overrides — uses existing design tokens only
+   ============================================================ */
+
+/* ── Base hidden state ── */
+.scroll-anim-hidden,
+.sa-hidden {
+  will-change: transform, opacity;
+}
+.sa-hidden {
+  pointer-events: auto !important;
+}
+
+/* ── Visible state (applied when in viewport) ── */
+.scroll-anim-visible,
+.sa-visible {
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ============================================================
+   1. FADE-UP — Hero, CoreValues, QualityStandards
+   Cinematic reveal from below, like a curtain rising
+   ============================================================ */
+.scroll-anim-fade-up.scroll-anim-hidden,
+.sa-anim-fade-up.sa-hidden {
+  opacity: 0;
+  transform: translateY(52px);
+}
+.scroll-anim-fade-up.scroll-anim-visible,
+.sa-anim-fade-up.sa-visible {
+  animation: anim-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes anim-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(52px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   2. FADE-LEFT — SuccessStory (slides in from right → left)
+   Like turning the page of a story
+   ============================================================ */
+.scroll-anim-fade-left.scroll-anim-hidden,
+.sa-anim-fade-left.sa-hidden {
+  opacity: 0;
+  transform: translateX(64px);
+}
+.scroll-anim-fade-left.scroll-anim-visible,
+.sa-anim-fade-left.sa-visible {
+  animation: anim-fade-left 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes anim-fade-left {
+  from {
+    opacity: 0;
+    transform: translateX(64px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============================================================
+   3. FADE-RIGHT — ContactSection (slides in from left → right)
+   Mirrored storytelling counterpart
+   ============================================================ */
+.scroll-anim-fade-right.scroll-anim-hidden,
+.sa-anim-fade-right.sa-hidden {
+  opacity: 0;
+  transform: translateX(-64px);
+}
+.scroll-anim-fade-right.scroll-anim-visible,
+.sa-anim-fade-right.sa-visible {
+  animation: anim-fade-right 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes anim-fade-right {
+  from {
+    opacity: 0;
+    transform: translateX(-64px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============================================================
+   4. SCALE-REVEAL — ProductsSection
+   Dramatic scale-in: like a spotlight brightening
+   ============================================================ */
+.scroll-anim-scale-reveal.scroll-anim-hidden,
+.sa-anim-scale-reveal.sa-hidden {
+  opacity: 0;
+  transform: scale(0.93) translateY(32px);
+}
+.scroll-anim-scale-reveal.scroll-anim-visible,
+.sa-anim-scale-reveal.sa-visible {
+  animation: anim-scale-reveal 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes anim-scale-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.93) translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ============================================================
+   5. STAGGER — ArticlesSection (children stagger in sequence)
+   Each card tells its own mini-story
+   ============================================================ */
+.scroll-anim-stagger.scroll-anim-hidden {
+  opacity: 0;
+  transform: translateY(40px);
+}
+.scroll-anim-stagger.scroll-anim-visible {
+  animation: anim-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Stagger children inside a stagger-parent */
+.scroll-anim-stagger.scroll-anim-visible > * {
+  animation: anim-stagger-child 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Up to 12 children */
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(1)  { animation-delay: 0.05s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(2)  { animation-delay: 0.12s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(3)  { animation-delay: 0.19s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(4)  { animation-delay: 0.26s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(5)  { animation-delay: 0.33s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(6)  { animation-delay: 0.40s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(7)  { animation-delay: 0.47s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(8)  { animation-delay: 0.54s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(9)  { animation-delay: 0.61s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(10) { animation-delay: 0.68s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(11) { animation-delay: 0.75s; }
+.scroll-anim-stagger.scroll-anim-visible > *:nth-child(12) { animation-delay: 0.82s; }
+
+@keyframes anim-stagger-child {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================================
+   6. CURTAIN — FAQSection
+   Content slides up from behind a clipped plane
+   ============================================================ */
+.scroll-anim-curtain.scroll-anim-hidden {
+  opacity: 0;
+  transform: translateY(44px) rotateX(4deg);
+  transform-origin: top center;
+  perspective: 800px;
+}
+.scroll-anim-curtain.scroll-anim-visible {
+  animation: anim-curtain 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.sa-anim-curtain.sa-hidden {
+  opacity: 0;
+  transform: translateY(44px) rotateX(4deg);
+  transform-origin: top center;
+  perspective: 800px;
+  clip-path: none !important;
+}
+.sa-anim-curtain.sa-visible {
+  animation: anim-curtain 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  clip-path: none !important;
+}
+@keyframes anim-curtain {
+  from {
+    opacity: 0;
+    transform: translateY(44px) rotateX(4deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+  }
+}
+
+/* ============================================================
+   SECTION DIVIDER LINES — subtle storytelling chapter markers
+   Pure CSS, no color overrides
+   ============================================================ */
+.scroll-chapter-marker {
+  position: relative;
+  overflow: hidden;
+}
+.scroll-chapter-marker::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--primary) / 0.3),
+    hsl(var(--primary) / 0.6),
+    hsl(var(--primary) / 0.3),
+    transparent
+  );
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.scroll-chapter-marker.scroll-anim-visible::before,
+.scroll-chapter-marker.sa-visible::before {
+  width: 80%;
+}
+
+/* ============================================================
+   HEADING WORD REVEAL — section titles feel alive
+   Apply .heading-reveal to h2 elements inside animated sections
+   ============================================================ */
+.scroll-anim-visible .heading-reveal,
+.sa-visible .heading-reveal {
+  animation: anim-heading-reveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+@keyframes anim-heading-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px) skewY(1.5deg);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) skewY(0deg);
+    filter: blur(0);
+  }
+}
+
+/* ============================================================
+   PARAGRAPH REVEAL — body text fades in after heading
+   ============================================================ */
+.scroll-anim-visible .body-reveal,
+.sa-visible .body-reveal {
+  animation: anim-body-reveal 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both;
+}
+@keyframes anim-body-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   STAT COUNTER SHIMMER — number stats get a shimmer sweep
+   ============================================================ */
+.scroll-anim-visible .stat-shimmer,
+.sa-visible .stat-shimmer {
+  animation: anim-stat-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes anim-stat-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ============================================================
+   ICON BOUNCE-IN — icons in value/quality cards
+   ============================================================ */
+.scroll-anim-visible .icon-bounce,
+.sa-visible .icon-bounce {
+  animation: anim-icon-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+}
+@keyframes anim-icon-bounce {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* ============================================================
+   LINE DRAW — decorative underlines for section headings
+   ============================================================ */
+.line-draw {
+  display: inline-block;
+  position: relative;
+}
+.line-draw::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.4));
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0s;
+}
+.scroll-anim-visible .line-draw::after,
+.sa-visible .line-draw::after {
+  transform: scaleX(1);
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.35s;
+}
+
+/* ============================================================
+   RESPECT REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-anim-hidden,
+  .scroll-anim-fade-up.scroll-anim-hidden,
+  .scroll-anim-fade-left.scroll-anim-hidden,
+  .scroll-anim-fade-right.scroll-anim-hidden,
+  .scroll-anim-scale-reveal.scroll-anim-hidden,
+  .scroll-anim-stagger.scroll-anim-hidden,
+  .scroll-anim-curtain.scroll-anim-hidden {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .scroll-anim-visible,
+  .scroll-anim-visible * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

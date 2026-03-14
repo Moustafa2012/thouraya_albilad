@@ -1,0 +1,247 @@
+export interface Country {
+    englishName: string;
+    arabicName: string;
+    phoneCode: string;
+    capital: string;
+    currency: string;
+  }
+
+  const countries: Country[] = [
+    { englishName: "Afghanistan", arabicName: "أفغانستان", phoneCode: "+93", capital: "Kabul", currency: "Afghan Afghani" },
+    { englishName: "Albania", arabicName: "ألبانيا", phoneCode: "+355", capital: "Tirana", currency: "Lek (All)" },
+    { englishName: "Algeria", arabicName: "الجزائر", phoneCode: "+213", capital: "Algiers", currency: "Dinar" },
+    { englishName: "Andorra", arabicName: "أندورا", phoneCode: "+376", capital: "Andorra la Vella", currency: "Euro" },
+    { englishName: "Angola", arabicName: "أنغولا", phoneCode: "+244", capital: "Luanda", currency: "Kwanza" },
+    { englishName: "Antigua and Barbuda", arabicName: "أنتيغوا وبربودا", phoneCode: "+1-268", capital: "Saint john’s", currency: "Eastern Caribbean dollar" },
+    { englishName: "Argentina", arabicName: "الأرجنتين", phoneCode: "+54", capital: "Buenos Aires", currency: "Argentine peso" },
+    { englishName: "Armenia", arabicName: "أرمينيا", phoneCode: "+374", capital: "Yerevan", currency: "Armenian dram" },
+    { englishName: "Australia", arabicName: "أستراليا", phoneCode: "+61", capital: "Canberra", currency: "Australian dollar" },
+    { englishName: "Austria", arabicName: "النمسا", phoneCode: "+43", capital: "Vienna", currency: "Euro" },
+    { englishName: "Azerbaijan", arabicName: "أذربيجان", phoneCode: "+994", capital: "Baku", currency: "Azerbaijani Manat" },
+    { englishName: "Bahamas", arabicName: "الباهاما", phoneCode: "+1-242", capital: "Nassau", currency: "Bahamian dollar" },
+    { englishName: "Bahrain", arabicName: "البحرين", phoneCode: "+973", capital: "Manama", currency: "Bahraini dinar" },
+    { englishName: "Bangladesh", arabicName: "بنغلاديش", phoneCode: "+880", capital: "Dhaka", currency: "Bangladeshi taka" },
+    { englishName: "Barbados", arabicName: "بربادوس", phoneCode: "+1-246", capital: "Bridgetown", currency: "Barbadian dollar" },
+    { englishName: "Belarus", arabicName: "بيلاروس", phoneCode: "+375", capital: "Minsk", currency: "Belarusian ruble" },
+    { englishName: "Belgium", arabicName: "بلجيكا", phoneCode: "+32", capital: "Brussels", currency: "Euro" },
+    { englishName: "Belize", arabicName: "بليز", phoneCode: "+501", capital: "Belmopan", currency: "Belize dollar" },
+    { englishName: "Benin", arabicName: "بنين", phoneCode: "+229", capital: "Porto Novo", currency: "West African CFA franc" },
+    { englishName: "Bhutan", arabicName: "بوتان", phoneCode: "+975", capital: "Thimphu", currency: "Bhutanese ngultrum" },
+    { englishName: "Bolivia", arabicName: "بوليفيا", phoneCode: "+591", capital: "Sucre", currency: "Bolivian boliviano" },
+    { englishName: "Bosnia and Herzegovina", arabicName: "البوسنة والهرسك", phoneCode: "+387", capital: "Sarajevo", currency: "Bosnia and Herzegovina convertible mark" },
+    { englishName: "Botswana", arabicName: "بوتسوانا", phoneCode: "+267", capital: "Gaborone", currency: "Botswana pula" },
+    { englishName: "Brazil", arabicName: "البرازيل", phoneCode: "+55", capital: "Brasilia", currency: "Brazilian real" },
+    { englishName: "Brunei", arabicName: "بروناي", phoneCode: "+673", capital: "Bandar Seri Begawan", currency: "Brunei dollar" },
+    { englishName: "Bulgaria", arabicName: "بلغاريا", phoneCode: "+359", capital: "Sofia", currency: "Bulgarian lev" },
+    { englishName: "Burkina Faso", arabicName: "بوركينا فاسو", phoneCode: "+226", capital: "Ouagadougou", currency: "West African CFA franc" },
+    { englishName: "Burundi", arabicName: "بوروندي", phoneCode: "+257", capital: "Gitega", currency: "Burundian franc" },
+    { englishName: "Cabo Verde", arabicName: "الرأس الأخضر", phoneCode: "+238", capital: "Praia", currency: "Cape Verdean escudo" },
+    { englishName: "Cambodia", arabicName: "كمبوديا", phoneCode: "+855", capital: "Phnom Penh", currency: "Cambodian riel" },
+    { englishName: "Cameroon", arabicName: "الكاميرون", phoneCode: "+237", capital: "Yaoundé", currency: "CFA franc, Central African CFA franc" },
+    { englishName: "Canada", arabicName: "كندا", phoneCode: "+1", capital: "Ottawa", currency: "Canadian dollar" },
+    { englishName: "Central African Republic", arabicName: "جمهورية أفريقيا الوسطى", phoneCode: "+236", capital: "Bangui", currency: "Central African CFA franc" },
+    { englishName: "Chad", arabicName: "تشاد", phoneCode: "+235", capital: "N'Djamena", currency: "CFA franc, Central African CFA franc" },
+    { englishName: "Chile", arabicName: "تشيلي", phoneCode: "+56", capital: "Santiago", currency: "Chilean peso" },
+    { englishName: "China", arabicName: "الصين", phoneCode: "+86", capital: "Beijing", currency: "Renminbi" },
+    { englishName: "Colombia", arabicName: "كولومبيا", phoneCode: "+57", capital: "Bogota", currency: "Colombian peso" },
+    { englishName: "Comoros", arabicName: "جزر القمر", phoneCode: "+269", capital: "Moroni", currency: "Comorian franc" },
+    { englishName: "Congo", arabicName: "الكونغو", phoneCode: "+242", capital: "Brazzaville", currency: "Central African CFA franc (XAF)" },
+    { englishName: "Costa Rica", arabicName: "كوستاريكا", phoneCode: "+506", capital: "San José", currency: "Costa Rican colón (CRC)" },
+    { englishName: "Croatia", arabicName: "كرواتيا", phoneCode: "+385", capital: "Zagreb", currency: "Euro (EUR)" },
+    { englishName: "Cuba", arabicName: "كوبا", phoneCode: "+53", capital: "Havana", currency: "Cuban peso (CUP)" },
+    { englishName: "Cyprus", arabicName: "قبرص", phoneCode: "+357", capital: "Nicosia", currency: "Euro (EUR)" },
+    { englishName: "Czech Republic", arabicName: "جمهورية التشيك", phoneCode: "+420", capital: "Prague", currency: "Czech koruna (CZK)" },
+    { englishName: "Denmark", arabicName: "الدنمارك", phoneCode: "+45", capital: "Copenhagen", currency: "Danish krone" },
+    { englishName: "Djibouti", arabicName: "جيبوتي", phoneCode: "+253", capital: "Djibouti", currency: "Djiboutian franc" },
+    { englishName: "Dominica", arabicName: "دومينيكا", phoneCode: "+1-767", capital: "Roseau", currency: "Eastern Caribbean dollar" },
+    { englishName: "Dominican Republic", arabicName: "جمهورية الدومينيكان", phoneCode: "+1-809", capital: "Santo Domingo", currency: "Dominican peso" },
+    { englishName: "Ecuador", arabicName: "الإكوادور", phoneCode: "+593", capital: "Quito", currency: "U.S dollar" },
+    { englishName: "Egypt", arabicName: "مصر", phoneCode: "+20", capital: "Cairo", currency: "Egyptian pound" },
+    { englishName: "El Salvador", arabicName: "السلفادور", phoneCode: "+503", capital: "San Salvador", currency: "U.S dollar" },
+    { englishName: "Equatorial Guinea", arabicName: "غينيا الاستوائية", phoneCode: "+240", capital: "Malabo", currency: "Central African CFA franc" },
+    { englishName: "Eritrea", arabicName: "إريتريا", phoneCode: "+291", capital: "Asmara", currency: "Eritrean nakfa" },
+    { englishName: "Estonia", arabicName: "إستونيا", phoneCode: "+372", capital: "Tallinn", currency: "Euro" },
+    { englishName: "Eswatini", arabicName: "إسواتيني", phoneCode: "+268", capital: "Mbabane(executive), Lobamba", currency: "Swazi, lilangeni" },
+    { englishName: "Ethiopia", arabicName: "إثيوبيا", phoneCode: "+251", capital: "Addis Ababa", currency: "Ethiopian birr" },
+    { englishName: "Fiji", arabicName: "فيجي", phoneCode: "+679", capital: "Suva", currency: "Fijian dollar" },
+    { englishName: "Finland", arabicName: "فنلندا", phoneCode: "+358", capital: "Helsinki", currency: "Euro" },
+    { englishName: "France", arabicName: "فرنسا", phoneCode: "+33", capital: "Paris", currency: "Euro, CFP franc" },
+    { englishName: "Gabon", arabicName: "الغابون", phoneCode: "+241", capital: "Libreville", currency: "CFA franc, Central African CFA franc" },
+    { englishName: "Gambia", "arabicName": "غامبيا", phoneCode: "+220", capital: "Banjul", currency: "Gambian dalasi" },
+    { englishName: "Georgia", arabicName: "جورجيا", phoneCode: "+995", capital: "Tabilisi", currency: "Georgian lari" },
+    { englishName: "Germany", arabicName: "ألمانيا", phoneCode: "+49", capital: "Berlin", currency: "Euro" },
+    { englishName: "Ghana", arabicName: "غانا", phoneCode: "+233", capital: "Accra", currency: "Ghanaian cedi" },
+    { englishName: "Greece", arabicName: "اليونان", phoneCode: "+30", capital: "Athens", currency: "Euro" },
+    { englishName: "Grenada", arabicName: "غرينادا", phoneCode: "+1-473", capital: "Saint George", currency: "Eastern Caribbean dollar" },
+    { englishName: "Guatemala", arabicName: "غواتيمالا", phoneCode: "+502", capital: "Guatemala city", currency: "Guatemalan quetzal" },
+    { englishName: "Guinea", arabicName: "غينيا", phoneCode: "+224", capital: "Conakry", currency: "Guinean franc" },
+    { englishName: "Guinea-Bissau", arabicName: "غينيا بيساو", phoneCode: "+245", capital: "Bissau", currency: "West African CFA franc" },
+    { englishName: "Guyana", arabicName: "غيانا", phoneCode: "+592", capital: "Georgetown", currency: "Guyanese dollar" },
+    { englishName: "Haiti", arabicName: "هايتي", phoneCode: "+509", capital: "Port-au-Prince", currency: "Haitian gourde" },
+    { englishName: "Honduras", arabicName: "هندوراس", phoneCode: "+504", capital: "Tegucigalpa", currency: "Honduran lempira" },
+    { englishName: "Hungary", arabicName: "المجر", phoneCode: "+36", capital: "Budapest", currency: "Hungarian forint" },
+    { englishName: "Iceland", arabicName: "آيسلندا", phoneCode: "+354", capital: "Reykjavik", currency: "Icelandic krona" },
+    { englishName: "India", arabicName: "الهند", phoneCode: "+91", capital: "New Delhi", currency: "Indian rupee" },
+    { englishName: "Indonesia", arabicName: "إندونيسيا", phoneCode: "+62", capital: "Jakarta", currency: "Indonesia rupiah" },
+    { englishName: "Iran", arabicName: "إيران", phoneCode: "+98", capital: "Tehran", currency: "Iranian rial (old) Toman (new)" },
+    { englishName: "Iraq", arabicName: "العراق", phoneCode: "+964", capital: "Baghdad", currency: "Iraqi dinar" },
+    { englishName: "Ireland", arabicName: "أيرلندا", phoneCode: "+353", capital: "Dublin", currency: "Euro" },
+    { englishName: "Israel", arabicName: "إسرائيل", phoneCode: "+972", capital: "Jerusalem", currency: "Israeli new shekel" },
+    { englishName: "Italy", arabicName: "إيطاليا", phoneCode: "+39", capital: "Rome", currency: "Euro" },
+    { englishName: "Jamaica", arabicName: "جامايكا", phoneCode: "+1-876", capital: "Kingston", currency: "Jamaican dollar" },
+    { englishName: "Japan", arabicName: "اليابان", phoneCode: "+81", capital: "Tokyo", currency: "Japanese yen" },
+    { englishName: "Jordan", arabicName: "الأردن", phoneCode: "+962", capital: "Amman", currency: "Jordanian dinar" },
+    { englishName: "Kazakhstan", arabicName: "كازاخستان", phoneCode: "+7", capital: "Nur - Sultan", currency: "Kazakhstani Tenge" },
+    { englishName: "Kenya", arabicName: "كينيا", phoneCode: "+254", capital: "Nairobi", currency: "Kenyan shilling" },
+    { englishName: "Kiribati", arabicName: "كيريباس", phoneCode: "+686", capital: "Tarawa", currency: "Australian dollar, Kiribati dollar" },
+    { englishName: "Kuwait", arabicName: "الكويت", phoneCode: "+965", capital: "Kuwait city", currency: "Kuwait dinar" },
+    { englishName: "Kyrgyzstan", arabicName: "قيرغيزستان", phoneCode: "+996", capital: "Bishkek", currency: "Kyrgyzstani Som" },
+    { englishName: "Laos", arabicName: "لاوس", phoneCode: "+856", capital: "Vientiane", currency: "Lao kip" },
+    { englishName: "Latvia", arabicName: "لاتفيا", phoneCode: "+371", capital: "Lego", currency: "Euro" },
+    { englishName: "Lebanon", arabicName: "لبنان", phoneCode: "+961", capital: "Beirut", currency: "Lebanese pound" },
+    { englishName: "Lesotho", arabicName: "ليسوتو", phoneCode: "+266", capital: "Maseru", currency: "South African rand, Lesotho loti" },
+    { englishName: "Liberia", arabicName: "ليبيريا", phoneCode: "+231", capital: "Monrovia", currency: "Liberian dollar" },
+    { englishName: "Libya", arabicName: "ليبيا", phoneCode: "+218", capital: "Tripoli", currency: "Libyan dinar" },
+    { englishName: "Liechtenstein", arabicName: "ليختنشتاين", phoneCode: "+423", capital: "Vaduz", currency: "Swiss frank" },
+    { englishName: "Lithuania", arabicName: "ليتوانيا", phoneCode: "+370", capital: "Vilnius", currency: "Euro" },
+    { englishName: "Luxembourg", arabicName: "لوكسمبورغ", phoneCode: "+352", capital: "Luxembourg", currency: "Euro" },
+    { englishName: "Madagascar", arabicName: "مدغشقر", phoneCode: "+261", capital: "Antananarivo", currency: "Malagasy ariary (MGA)" },
+    { englishName: "Malawi", arabicName: "مالاوي", phoneCode: "+265", capital: "Lilongwe", currency: "Malawian kwacha (MWK)" },
+    { englishName: "Malaysia", arabicName: "ماليزيا", phoneCode: "+60", capital: "Kuala Lumpur", currency: "Malaysian ringgit" },
+    { englishName: "Maldives", arabicName: "المالديف", phoneCode: "+960", capital: "Male", currency: "Maldivian rufiyaa" },
+    { englishName: "Mali", arabicName: "مالي", phoneCode: "+223", capital: "Bamako", currency: "West African CFA franc" },
+    { englishName: "Malta", arabicName: "مالطا", phoneCode: "+356", capital: "Valletta", currency: "Euro" },
+    { englishName: "Marshall Islands", arabicName: "جزر مارشال", phoneCode: "+692", capital: "Delap-Uliga-Djarrit", currency: "U.S dollar" },
+    { englishName: "Mauritania", arabicName: "موريتانيا", phoneCode: "+222", capital: "Nouakchott", currency: "Mauritanian ouguiya" },
+    { englishName: "Mauritius", arabicName: "موريشيوس", phoneCode: "+230", capital: "Port Luis", currency: "Mauritian rupee" },
+    { englishName: "Mexico", arabicName: "المكسيك", phoneCode: "+52", capital: "Mexican city", currency: "Mexican peso" },
+    { englishName: "Micronesia", arabicName: "ميكرونيزيا", phoneCode: "+691", capital: "Palikir", currency: "U.S dollar" },
+    { englishName: "Moldova", arabicName: "مولدوفا", phoneCode: "+373", capital: "Chisinau", currency: "Moldovan leu" },
+    { englishName: "Monaco", arabicName: "موناكو", phoneCode: "+377", capital: "Monaco", currency: "Euro" },
+    { englishName: "Mongolia", arabicName: "منغوليا", phoneCode: "+976", capital: "Ulaanbaatar", currency: "Mongolian togrog" },
+    { englishName: "Montenegro", arabicName: "الجبل الأسود", phoneCode: "+382", capital: "Podgorica", currency: "Euro" },
+    { englishName: "Morocco", arabicName: "المغرب", phoneCode: "+212", capital: "Rabat", currency: "Moroccan dirham" },
+    { englishName: "Mozambique", arabicName: "موزمبيق", phoneCode: "+258", capital: "Maputo", currency: "Mozambican metical" },
+    { englishName: "Myanmar (Burma)", arabicName: "ميانمار (بورما)", phoneCode: "+95", capital: "Naypyitaw", currency: "Burmese kyat" },
+    { englishName: "Namibia", arabicName: "ناميبيا", phoneCode: "+264", capital: "Windhoek", currency: "South African rand, Namibian dollar" },
+    { englishName: "Nauru", arabicName: "ناورو", phoneCode: "+674", capital: "Yaren", currency: "Australian dollar" },
+    { englishName: "Nepal", arabicName: "نيبال", phoneCode: "+977", capital: "Kathmandu", currency: "Nepalese rupee" },
+    { englishName: "Netherlands", arabicName: "هولندا", phoneCode: "+31", capital: "Amsterdam", currency: "Euro" },
+    { englishName: "New Zealand", arabicName: "نيوزيلندا", phoneCode: "+64", capital: "Wellington", currency: "New Zealand dollar" },
+    { englishName: "Nicaragua", arabicName: "نيكاراغوا", phoneCode: "+505", capital: "Managua", currency: "Nicaraguan cordoba" },
+    { englishName: "Niger", arabicName: "النيجر", phoneCode: "+227", capital: "Niamey", currency: "West African CFA franc" },
+    { englishName: "Nigeria", arabicName: "نيجيريا", phoneCode: "+234", capital: "Abuja", currency: "Nigerian naira" },
+    { englishName: "North Korea", arabicName: "كوريا الشمالية", phoneCode: "+850", capital: "Pyongyang", currency: "North Korean won" },
+    { englishName: "North Macedonia", arabicName: "مقدونيا الشمالية", phoneCode: "+389", capital: "Skopje", currency: "Macedonia denar" },
+    { englishName: "Norway", arabicName: "النرويج", phoneCode: "+47", capital: "Oslo", currency: "Norwegian krone" },
+    { englishName: "Oman", arabicName: "عمان", phoneCode: "+968", capital: "Muscat", currency: "Omani Rial" },
+    { englishName: "Pakistan", arabicName: "باكستان", phoneCode: "+92", capital: "Islamabad", currency: "Pakistani rupee" },
+    { englishName: "Palau", arabicName: "بالاو", phoneCode: "+680", capital: "Ngerulmud, Melekeok", currency: "U.S Dollar" },
+    { englishName: "Palestine", arabicName: "فلسطين", phoneCode: "+970", capital: "Ramallah, east Jerusalem", currency: "Israeli new shekel, Jordanian dinar" },
+    { englishName: "Panama", arabicName: "بنما", phoneCode: "+507", capital: "Panama city", currency: "U.S dollar, Panamanian balboa" },
+    { englishName: "Papua New Guinea", arabicName: "بابوا غينيا الجديدة", phoneCode: "+675", capital: "Port Moresby", currency: "Papua New Guinean kina" },
+    { englishName: "Paraguay", arabicName: "باراغواي", phoneCode: "+595", capital: "Asunción", currency: "Paraguayan Guaraní" },
+    { englishName: "Peru", arabicName: "بيرو", phoneCode: "+51", capital: "Lima", currency: "Sol" },
+    { englishName: "Philippines", arabicName: "الفلبين", phoneCode: "+63", capital: "Manila", currency: "Philippine peso" },
+    { englishName: "Poland", arabicName: "بولندا", phoneCode: "+48", capital: "Warsaw", currency: "Polish złoty" },
+    { englishName: "Portugal", arabicName: "البرتغال", phoneCode: "+351", capital: "Lisbon", currency: "Euro" },
+    { englishName: "Qatar", arabicName: "قطر", phoneCode: "+974", capital: "Doha", currency: "Qatari riyal" },
+    { englishName: "Romania", arabicName: "رومانيا", phoneCode: "+40", capital: "Bucharest", currency: "Romanian leu" },
+    { englishName: "Russia", arabicName: "روسيا", phoneCode: "+7", capital: "Moscow", currency: "Russian ruble" },
+    { englishName: "Rwanda", arabicName: "رواندا", phoneCode: "+250", capital: "Kigali", currency: "Rwandan franc" },
+    { englishName: "Saint Kitts and Nevis", arabicName: "سانت كيتس ونيفيس", phoneCode: "+1-869", capital: "Basseterre", currency: "East Caribbean dollar (XCD)" },
+    { englishName: "Saint Lucia", arabicName: "سانت لوسيا", phoneCode: "+1-758", capital: "Castries", currency: "East Caribbean dollar (XCD)" },
+    { englishName: "Saint Vincent and the Grenadines", arabicName: "سانت فنسنت والغرينادين", phoneCode: "+1-784", capital: "Kingstown", currency: "East Caribbean dollar (XCD)" },
+    { englishName: "Samoa", arabicName: "ساموا", phoneCode: "+685", capital: "Apia", currency: "Samoan tālā (WST)" },
+    { englishName: "San Marino", arabicName: "سان مارينو", phoneCode: "+378", capital: "San Marino", currency: "Euro (EUR)" },
+    { englishName: "Sao Tome and Principe", arabicName: "ساو تومي وبرينسيب", phoneCode: "+239", capital: "São Tomé", currency: "São Tomé and Príncipe dobra (STD)" },
+    { englishName: "Saudi Arabia", arabicName: "المملكة العربية السعودية", phoneCode: "+966", capital: "Riyadh", currency: "Saudi riyal" },
+    { englishName: "Senegal", arabicName: "السنغال", phoneCode: "+221", capital: "Dakar", currency: "West African CFA franc (XOF)" },
+    { englishName: "Serbia", arabicName: "صربيا", phoneCode: "+381", capital: "Belgrade", currency: "Serbian dinar (RSD)" },
+    { englishName: "Seychelles", arabicName: "سيشيل", phoneCode: "+248", capital: "Victoria", currency: "Seychellois rupee (SCR)" },
+    { englishName: "Sierra Leone", arabicName: "سيراليون", phoneCode: "+232", capital: "Freetown", currency: "Sierra Leonean leone (SLL)" },
+    { englishName: "Singapore", arabicName: "سنغافورة", phoneCode: "+65", capital: "Singapore city", currency: "Singapore dollar" },
+    { englishName: "Slovakia", arabicName: "سلوفاكيا", phoneCode: "+421", capital: "Bratislava", currency: "Euro" },
+    { englishName: "Slovenia", arabicName: "سلوفينيا", phoneCode: "+386", capital: "Ljubljana", currency: "Euro" },
+    { englishName: "Solomon Islands", arabicName: "جزر سليمان", phoneCode: "+677", capital: "Honiara", currency: "Solomon Islands dollar (SBD)" },
+    { englishName: "Somalia", arabicName: "الصومال", phoneCode: "+252", capital: "Mogadishu", currency: "Somali shilling (SOS)" },
+    { englishName: "South Africa", arabicName: "جنوب أفريقيا", phoneCode: "+27", capital: "Cape Town, Pretoria, Bloemfontein", currency: "South African rand" },
+    { englishName: "South Korea", arabicName: "كوريا الجنوبية", phoneCode: "+82", capital: "Seoul", currency: "South Korean won" },
+    { englishName: "South Sudan", arabicName: "جنوب السودان", phoneCode: "+211", capital: "Juba", currency: "South Sudanese pound" },
+    { englishName: "Spain", arabicName: "إسبانيا", phoneCode: "+34", capital: "Madrid", currency: "Euro" },
+    { englishName: "Sri Lanka", arabicName: "سريلانكا", phoneCode: "+94", capital: "Colombo, Sri Jayawardenepura Kotte", currency: "Sri Lankan rupee" },
+    { englishName: "Sudan", arabicName: "السودان", phoneCode: "+249", capital: "Khartoum", currency: "Sudanese pound" },
+    { englishName: "Suriname", arabicName: "سورينام", phoneCode: "+597", capital: "Paramaribo", currency: "Surinamese dollar" },
+    { englishName: "Sweden", arabicName: "السويد", phoneCode: "+46", capital: "Stockholm", currency: "Swedish krona" },
+    { englishName: "Switzerland", arabicName: "سويسرا", phoneCode: "+41", capital: "None", currency: "Swiss franc" },
+    { englishName: "Syria", arabicName: "سوريا", phoneCode: "+963", capital: "Damascus", currency: "Syrian pound" },
+    { englishName: "Taiwan", arabicName: "تايوان", phoneCode: "+886", capital: "Taipei", currency: "New Taiwan dollar (TWD)" },
+    { englishName: "Tajikistan", arabicName: "طاجيكستان", phoneCode: "+992", capital: "Dushanbe", currency: "Tajikistani somoni" },
+    { englishName: "Tanzania", arabicName: "تنزانيا", phoneCode: "+255", capital: "Dodoma", currency: "Tanzanian shilling" },
+    { englishName: "Thailand", arabicName: "تايلاند", phoneCode: "+66", capital: "Bangkok", currency: "Thai Bhat" },
+    { englishName: "Timor-Leste", arabicName: "تيمور الشرقية", phoneCode: "+670", capital: "Dili", currency: "United States Dollar" },
+    { englishName: "Togo", arabicName: "توجو", phoneCode: "+228", capital: "Lome", currency: "West African CFA franc" },
+    { englishName: "Tonga", arabicName: "تونغا", phoneCode: "+676", capital: "Nukuʻalofa", currency: "Tongan paʻanga" },
+    { englishName: "Trinidad and Tobago", arabicName: "ترينيداد وتوباغو", phoneCode: "+1-868", capital: "Port of Spain", currency: "Trinidad and Tobago dollar" },
+    { englishName: "Tunisia", arabicName: "تونس", phoneCode: "+216", capital: "Tunis", currency: "Tunisian dinar" },
+    { englishName: "Turkey", arabicName: "تركيا", phoneCode: "+90", capital: "Ankara", currency: "Turkish lira" },
+    { englishName: "Turkmenistan", arabicName: "تركمانستان", phoneCode: "+993", capital: "Ashgabat", currency: "Turkmenistan manat" },
+    { englishName: "Tuvalu", arabicName: "توفالو", phoneCode: "+688", capital: "Funafuti", currency: "Australian dollar, Tuvaluan dollar" },
+    { englishName: "Uganda", arabicName: "أوغندا", phoneCode: "+256", capital: "Kampala", currency: "Ugandan shilling" },
+    { englishName: "Ukraine", arabicName: "أوكرانيا", phoneCode: "+380", capital: "Kyiv", currency: "Ukrainian hryvnia" },
+    { englishName: "United Arab Emirates", arabicName: "الإمارات العربية المتحدة", phoneCode: "+971", capital: "Abu Dhabi", currency: "United Arab Emirates Dirham" },
+    { englishName: "United Kingdom", arabicName: "المملكة المتحدة", phoneCode: "+44", capital: "London", currency: "Pound sterling" },
+    { englishName: "United States", arabicName: "الولايات المتحدة", phoneCode: "+1", capital: "Washington, D.C.", currency: "United States Dollar (USD)" },
+    { englishName: "Uruguay", arabicName: "أوروغواي", phoneCode: "+598", capital: "Montevideo", currency: "Uruguayan peso" },
+    { englishName: "Uzbekistan", arabicName: "أوزبكستان", phoneCode: "+998", capital: "Tashkent", currency: "Uzbekistani som" },
+    { englishName: "Vanuatu", arabicName: "فانواتو", phoneCode: "+678", capital: "Port Vila", currency: "Vanuatu vatu" },
+    { englishName: "Vatican City", arabicName: "الفاتيكان", phoneCode: "+379", capital: "Vatican City", currency: "Euro (EUR)" },
+    { englishName: "Venezuela", arabicName: "فنزويلا", phoneCode: "+58", capital: "Caracas", currency: "Venezuelan bolívar, Petro" },
+    { englishName: "Vietnam", arabicName: "فيتنام", phoneCode: "+84", capital: "Hanoi", currency: "Vietnamese dong" },
+    { englishName: "Yemen", arabicName: "اليمن", phoneCode: "+967", capital: "Sana’a", currency: "Yemeni Rial" },
+    { englishName: "Zambia", arabicName: "زامبيا", phoneCode: "+260", capital: "Lusaka", currency: "Zambian kwacha" },
+    { englishName: "Zimbabwe", arabicName: "زيمبابوي", phoneCode: "+263", capital: "Harare", currency: "Zimbabwean dollar, US dollar, South African rand" },
+  ];
+
+ /**
+   * Validates phone codes to ensure they follow the correct format
+   * @param phoneCode - The phone code to validate
+   * @returns boolean indicating if the phone code is valid
+   */
+  function isValidPhoneCode(phoneCode: string): boolean {
+    return /^\+\d{1,4}(-\d{1,4})?$/.test(phoneCode);
+  }
+
+  /**
+   * Gets a country by its index
+   * @param index - The index of the country in the array
+   * @returns Country object or undefined if index is invalid
+   */
+  function getCountryByIndex(index: number): Country | undefined {
+    if (index < 0 || index >= countries.length) {
+      return undefined;
+    }
+    return countries[index];
+  }
+
+  /**
+   * Individual arrays for English names, Arabic names, and phone codes
+   */
+  const countryList: string[] = countries.map(country => country.englishName);
+  const countryListArabic: string[] = countries.map(country => country.arabicName);
+  const countryCodeList: string[] = countries.map(country => {
+    if (!isValidPhoneCode(country.phoneCode)) {
+      throw new Error(`Invalid phone code for ${country.englishName}: ${country.phoneCode}`);
+    }
+    return country.phoneCode;
+  });
+
+  // Export all necessary values
+  export { 
+    countries, 
+    countryList, 
+    countryListArabic, 
+    countryCodeList, 
+    getCountryByIndex, 
+    isValidPhoneCode 
+  };
