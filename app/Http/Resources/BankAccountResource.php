@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 
 class BankAccountResource extends JsonResource
 {
@@ -14,9 +15,11 @@ class BankAccountResource extends JsonResource
     {
         $business = $this->whenLoaded('business');
         $personal = $this->whenLoaded('personal');
+        $dateOfBirth = $personal?->date_of_birth;
 
         return [
             'id' => $this->id,
+            'accountName' => $this->account_name,
 
             // Holder
             'holderNameAr' => $this->holder_name_ar,
@@ -24,7 +27,8 @@ class BankAccountResource extends JsonResource
             'holderIdType' => $this->holder_id_type,
             'holderId' => $this->holder_id,
             // Personal specific
-            'dateOfBirth' => $personal?->date_of_birth,
+            'accountHolderName' => $personal?->account_holder_name,
+            'dateOfBirth' => $dateOfBirth ? Carbon::parse($dateOfBirth)->toDateString() : null,
             'ssnLast4' => $personal?->ssn_last_4,
 
             // Bank

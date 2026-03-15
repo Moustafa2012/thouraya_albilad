@@ -1,11 +1,11 @@
 import { Head, router } from '@inertiajs/react';
 import { AnimatePresence } from 'framer-motion';
 import { useMemo, useState } from 'react';
+import { AuditLogCard } from '@/components/AuditLogs/AuditLogCard';
 import { AuditLogsEmptyState } from '@/components/AuditLogs/AuditLogsEmptyState';
 import { AuditLogsHeader } from '@/components/AuditLogs/AuditLogsHeader';
-import { AuditLogsStats } from '@/components/AuditLogs/AuditLogsStats';
-import { AuditLogCard } from '@/components/AuditLogs/AuditLogCard';
 import { AuditLogsPagination } from '@/components/AuditLogs/AuditLogsPagination';
+import { AuditLogsStats } from '@/components/AuditLogs/AuditLogsStats';
 import type { AuditLog, AuditLogFilters, Pagination } from '@/components/AuditLogs/types';
 import { useLanguage } from '@/components/language-provider';
 import AppLayout from '@/layouts/app-layout';

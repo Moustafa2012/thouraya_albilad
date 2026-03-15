@@ -3,8 +3,8 @@
 // All data structures, country routing fields, banks, and currencies unchanged.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type React from 'react';
 import { Building2, User } from 'lucide-react';
+import type React from 'react';
 import type { AccountCategory } from './types';
 
 export interface Country {

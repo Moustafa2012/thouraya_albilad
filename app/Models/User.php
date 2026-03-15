@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Enums\UserPermission;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -13,7 +14,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -31,9 +33,19 @@ class User extends Authenticatable
         'nationality',
         'timezone',
         'locale',
+        'bio',
+        'address',
+        'city',
+        'state',
+        'country',
+        'postal_code',
         'role',
         'permissions',
         'is_active',
+        'is_banned',
+        'ban_reason',
+        'banned_at',
+        'banned_by',
         'is_super_admin',
         'last_login_at',
         'last_login_ip',
@@ -86,6 +98,7 @@ class User extends Authenticatable
             'role' => UserRole::class,
             'permissions' => 'array',
             'is_active' => 'boolean',
+            'is_banned' => 'boolean',
             'is_super_admin' => 'boolean',
             'last_login_at' => 'datetime',
             'locked_until' => 'datetime',
@@ -100,6 +113,11 @@ class User extends Authenticatable
     public function beneficiaries()
     {
         return $this->hasMany(Beneficiary::class);
+    }
+
+    public function transfers()
+    {
+        return $this->hasMany(Transfer::class);
     }
 
     public function loginHistory()

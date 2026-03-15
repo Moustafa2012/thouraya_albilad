@@ -63,8 +63,7 @@ export default function Beneficiaries({ beneficiaries }: { beneficiaries: Benefi
   }
 
   function handleEdit(beneficiary: Beneficiary) {
-    // router.visit(`/beneficiaries/${beneficiary.id}/edit`);
-    console.log('Edit beneficiary', beneficiary.id);
+    router.visit(`/beneficiaries/${beneficiary.id}/edit`);
   }
 
   function handleCopy(text: string, id: string) {

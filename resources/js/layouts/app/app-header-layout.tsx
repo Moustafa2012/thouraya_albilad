@@ -4,8 +4,8 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { ErrorBoundary } from '@/components/error-boundary';
-import { Toaster } from '@/components/ui/toaster';
 import { useLanguage } from '@/components/language-provider';
+import { Toaster } from '@/components/ui/toaster';
 import type { AppLayoutProps } from '@/types';
 
 /* ── Inline loading skeleton ───────────────────────────────────── */

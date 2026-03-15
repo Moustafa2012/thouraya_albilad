@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
@@ -21,6 +20,7 @@ import {
   Network,
   ArrowRight,
 } from 'lucide-react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import type { AuditLog } from './types';
 
@@ -188,7 +188,7 @@ export function AuditLogCard({ log, index, isRtl, t }: AuditLogCardProps) {
 
   const formatDate = (date: Date) =>
     new Intl.DateTimeFormat(isRtl ? 'ar-SA' : 'en-US', {
-      year: 'numeric', month: 'short', day: 'numeric',
+      month: 'short', day: 'numeric',
       hour: '2-digit', minute: '2-digit',
     }).format(new Date(date));
 
@@ -203,100 +203,93 @@ export function AuditLogCard({ log, index, isRtl, t }: AuditLogCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.04, 0.3), duration: 0.22, ease: 'easeOut' }}
       className={cn(
-        'group relative overflow-hidden rounded-xl border border-border bg-card',
+        'group relative overflow-hidden rounded-lg border border-border bg-card',
         'shadow-sm transition-shadow duration-200 hover:shadow-md',
         log.severity === 'critical' && 'border-rose-200 dark:border-rose-900/60',
         log.severity === 'warning'  && 'border-amber-200 dark:border-amber-900/60',
       )}
     >
       {/* Severity accent bar */}
-      <div className={cn('absolute inset-y-0 start-0 w-[3px] rounded-s-xl', severityCfg.bar)} />
+      <div className={cn('absolute inset-y-0 start-0 w-[3px]', severityCfg.bar)} />
 
-      <div className="ps-5 pe-4 pt-4 pb-3">
-        {/* ── Row 1: severity badge + action chip + resource + timestamp ── */}
+      <div className="ps-4 pe-2 py-2">
+        {/* ── Single compact row ── */}
         <div className={cn(
-          'flex flex-wrap items-center gap-2 mb-2.5',
+          'flex items-center gap-2 min-w-0',
           isRtl && 'flex-row-reverse',
         )}>
           {/* Severity badge */}
           <span className={cn(
-            'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold tracking-wide',
+            'inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide flex-shrink-0',
             severityCfg.badge,
           )}>
-            <SeverityIcon className="size-3" />
+            <SeverityIcon className="size-2.5" />
             {t(severityCfg.label.en, severityCfg.label.ar)}
           </span>
 
           {/* Action chip */}
-          <span className="inline-flex items-center gap-1 rounded-md bg-muted/70 px-2 py-0.5 text-[11px] font-medium text-muted-foreground border border-border/60">
-            <ActionIcon className={cn('size-3', actionCfg.iconClass)} />
+          <span className="inline-flex items-center gap-1 rounded bg-muted/70 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground border border-border/60 flex-shrink-0">
+            <ActionIcon className={cn('size-2.5', actionCfg.iconClass)} />
             {t(actionCfg.label.en, actionCfg.label.ar)}
           </span>
 
           {/* Resource chip */}
-          <span className="inline-flex items-center gap-1 rounded-md bg-muted/40 px-2 py-0.5 text-[11px] text-muted-foreground border border-border/40">
-            <Shield className="size-3 opacity-60" />
+          <span className="inline-flex items-center gap-1 rounded bg-muted/40 px-1.5 py-0.5 text-[10px] text-muted-foreground border border-border/40 flex-shrink-0">
+            <Shield className="size-2.5 opacity-60" />
             {t(resourceCfg.label.en, resourceCfg.label.ar)}
             {log.resourceId && (
               <span className="font-mono opacity-50">#{log.resourceId}</span>
             )}
           </span>
 
-          {/* Spacer + timestamp (pushed to end) */}
-          <span className="ms-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground/70 whitespace-nowrap">
-            <Calendar className="size-3 opacity-60" />
-            {formatDate(log.createdAt)}
-          </span>
-        </div>
+          {/* Divider */}
+          <span className="text-border/60 flex-shrink-0 select-none text-xs">·</span>
 
-        {/* ── Row 2: Description ── */}
-        <p className="text-sm font-medium text-foreground leading-snug mb-2.5">
-          {resolveDescription(log.description)}
-        </p>
+          {/* Description — flex-1 so it takes remaining space and truncates */}
+          <p className="text-xs font-medium text-foreground truncate flex-1 min-w-0">
+            {resolveDescription(log.description)}
+          </p>
 
-        {/* ── Row 3: Meta row (user + IP) ── */}
-        <div className={cn(
-          'flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground',
-          isRtl && 'flex-row-reverse',
-        )}>
-          <span className="inline-flex items-center gap-1">
-            <span className="size-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-              <User className="size-3" />
-            </span>
-            <span className="font-medium text-foreground/80">
+          {/* User — hidden on small screens */}
+          <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-muted-foreground flex-shrink-0">
+            <User className="size-2.5 opacity-50" />
+            <span className="font-medium text-foreground/70 max-w-[240px] truncate">
               {log.userName || t('System', 'النظام')}
             </span>
-            {log.userEmail && (
-              <span className="text-muted-foreground/60 hidden sm:inline">· {log.userEmail}</span>
-            )}
           </span>
 
+          {/* IP — hidden on medium and below */}
           {log.ipAddress && log.ipAddress !== 'N/A' && (
-            <span className="inline-flex items-center gap-1 font-mono">
-              <Network className="size-3 opacity-60" />
+            <span className="hidden lg:inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground/70 flex-shrink-0">
+              <Network className="size-2.5 opacity-50" />
               {log.ipAddress}
             </span>
           )}
-        </div>
 
-        {/* ── Expand toggle ── */}
-        {hasDetails && (
-          <button
-            onClick={() => setExpanded(v => !v)}
-            className={cn(
-              'mt-3 flex items-center gap-1 text-[11px] font-medium text-muted-foreground',
-              'hover:text-foreground transition-colors duration-150',
-            )}
-          >
-            <ChevronDown
+          {/* Timestamp */}
+          <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/60 whitespace-nowrap flex-shrink-0">
+            <Calendar className="size-2.5 opacity-50" />
+            {formatDate(log.createdAt)}
+          </span>
+
+          {/* Expand toggle */}
+          {hasDetails && (
+            <button
+              onClick={() => setExpanded(v => !v)}
               className={cn(
-                'size-3.5 transition-transform duration-200',
-                expanded && 'rotate-180',
+                'flex-shrink-0 flex items-center justify-center size-5 rounded',
+                'text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150',
               )}
-            />
-            {expanded ? t('Hide details', 'إخفاء التفاصيل') : t('Show details', 'عرض التفاصيل')}
-          </button>
-        )}
+            >
+              <ChevronDown
+                className={cn(
+                  'size-3 transition-transform duration-200',
+                  expanded && 'rotate-180',
+                )}
+              />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Expandable details panel ── */}
@@ -310,7 +303,7 @@ export function AuditLogCard({ log, index, isRtl, t }: AuditLogCardProps) {
             transition={{ duration: 0.22, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="mx-4 mb-4 rounded-lg border border-border/70 bg-muted/30 divide-y divide-border/50">
+            <div className="mx-3 mb-3 rounded-lg border border-border/70 bg-muted/30 divide-y divide-border/50">
 
               {/* Metadata pills */}
               {log.metadata && Object.keys(log.metadata).length > 0 && (

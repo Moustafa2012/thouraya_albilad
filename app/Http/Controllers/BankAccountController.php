@@ -8,6 +8,7 @@ use App\Http\Resources\BankAccountResource;
 use App\Models\BankAccount;
 use App\Services\BankAccountService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -37,28 +38,23 @@ class BankAccountController extends Controller
     public function store(StoreBankAccountRequest $request): RedirectResponse
     {
         try {
-            // Debug logging
-            \Log::info('BankAccountController@store called', [
-                'request_data' => $request->all(),
-                'validated_data' => $request->validated(),
+            Log::info('BankAccountController@store called', [
                 'user_id' => $request->user()?->id,
             ]);
-            
+
             $bankAccount = $this->bankAccountService->create($request);
-            
-            \Log::info('Bank account created successfully', [
+
+            Log::info('Bank account created successfully', [
                 'bank_account_id' => $bankAccount->id,
                 'account_category' => $bankAccount->account_category,
                 'has_business_details' => $bankAccount->business !== null,
             ]);
-            
         } catch (Throwable $e) {
-            \Log::error('Failed to create bank account', [
+            Log::error('Failed to create bank account', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all(),
             ]);
-            
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('Failed to create bank account: :message', ['message' => $e->getMessage()]));

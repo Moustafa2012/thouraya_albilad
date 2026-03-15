@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import CreateBankAccount from '@/pages/Createbankaccount';
-import { useLanguage } from '@/components/language-provider';
 import type { BankAccount } from '@/components/Banks/types';
+import { useLanguage } from '@/components/language-provider';
+import CreateBankAccount from '@/pages/Createbankaccount';
 
 // Mock the language provider
 vi.mock('@/components/language-provider', () => ({

@@ -96,7 +96,7 @@ function accountToFormData(account: BankAccount): BankAccountFormData {
       (account.metadata?.holderPhone as string | undefined)?.trim() ||
       account.bankPhone ||
       '',
-    holderEmail: account.bankEmail ?? '',
+    holderEmail: (account.metadata?.holderEmail as string | undefined)?.trim() || '',
     bankCountry: account.bankCountry ?? '',
     bankName: account.bankName ?? '',
     bankSwift: account.swiftCode ?? '',
@@ -163,14 +163,15 @@ function accountToFormData(account: BankAccount): BankAccountFormData {
 function formDataToPayload(formData: BankAccountFormData): RequestPayload {
   const isBusiness = formData.accountCategory === 'business';
   const isPersonal = formData.accountCategory === 'personal';
+  const inferredHolderName = (isBusiness ? formData.businessName : '') || formData.holderNameEn;
 
   return {
     account_name:
       formData.accountNickname ||
       (isBusiness ? formData.businessName : formData.holderNameEn) ||
       null,
-    holder_name_ar: formData.holderNameAr,
-    holder_name_en: formData.holderNameEn,
+    holder_name_ar: formData.holderNameAr || inferredHolderName,
+    holder_name_en: formData.holderNameEn || inferredHolderName,
     holder_id_type: formData.holderIdType || null,
     holder_id: formData.holderId || null,
     date_of_birth: isPersonal ? (formData.dateOfBirth || null) : null,
@@ -195,6 +196,8 @@ function formDataToPayload(formData: BankAccountFormData): RequestPayload {
     is_active: formData.isActive,
     notes: formData.notes || null,
     metadata: {
+      holderPhone: formData.holderPhone || null,
+      holderEmail: formData.holderEmail || null,
       bankWebsite: formData.bankWebsite || null,
       bankCity: formData.bankCity || null,
       bankRelationshipDuration: formData.bankRelationshipDuration || null,

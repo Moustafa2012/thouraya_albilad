@@ -5,6 +5,7 @@ import { AtSign, Building2, Landmark, MapPin, Search } from 'lucide-react';
 import { useState } from 'react';
 import { CountryDropdown } from '@/components/ui/country-dropdown';
 import type { Country as UiCountry } from '@/components/ui/country-dropdown';
+import { GlassField, inputCls } from '@/components/ui/GlassField';
 import { Input } from '@/components/ui/input';
 import { PhoneInput, lookupCountry } from '@/components/ui/phone-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,7 +13,6 @@ import { cn } from '@/lib/utils';
 import { COUNTRIES, BANKS } from '../BankAccountData';
 import type { Country } from '../BankAccountData';
 import type { BankAccountFormData, CommonStepProps } from '../types';
-import { GlassField, inputCls } from '@/components/ui/GlassField';
 
 function RoutingFieldsPanel({
   selectedCountry, formData, isRtl, set,

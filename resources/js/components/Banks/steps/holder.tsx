@@ -3,12 +3,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { AtSign, Briefcase, Lock, User, UserCheck } from 'lucide-react';
 import { useMemo } from 'react';
+import { GlassField, inputCls } from '@/components/ui/GlassField';
 import { ALL_COUNTRIES, PhoneInput, detectDialCode, onlyDigits } from '@/components/ui/phone-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { getIdTypeOptions } from '../BankAccountValidation';
 import type { BankAccountFormData, CommonStepProps } from '../types';
-import { GlassField, inputCls } from '@/components/ui/GlassField';
 
 function usePhoneValue(raw: string) {
   return useMemo(() => {

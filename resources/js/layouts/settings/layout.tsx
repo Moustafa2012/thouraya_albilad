@@ -1,26 +1,31 @@
 import { Link } from '@inertiajs/react';
+import {
+    User,
+    KeyRound,
+    ShieldCheck,
+    Palette,
+    UserCog,
+    Mail,
+} from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
+import { useLanguage } from '@/components/language-provider';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/hooks/Use auth';
 import { useCurrentUrl } from '@/hooks/use-current-url';
-import { useLanguage } from '@/components/language-provider';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
 import type { NavItem } from '@/types';
-import {
-    User,
-    KeyRound,
-    ShieldCheck,
-    Palette,
-} from 'lucide-react';
 
 /* ── Nav items factory (with translations + icons) ─────────────── */
 const getSettingsNavItems = (
     t: (en: string, ar: string) => string,
+    canManageUsers: boolean,
+    canManageSmtp: boolean,
 ): (NavItem & { icon: React.ElementType })[] => [
     {
         title: t('Profile', 'الملف الشخصي'),
@@ -42,16 +47,35 @@ const getSettingsNavItems = (
         href: editAppearance().url,
         icon: Palette,
     },
+    ...(canManageUsers
+        ? [
+              {
+                  title: t('Users & Roles', 'إدارة المستخدمين'),
+                  href: '/settings/users',
+                  icon: UserCog,
+              },
+          ]
+        : []),
+    ...(canManageSmtp
+        ? [
+              {
+                  title: t('SMTP Email', 'إعدادات SMTP'),
+                  href: '/settings/smtp',
+                  icon: Mail,
+              },
+          ]
+        : []),
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentUrl } = useCurrentUrl();
     const { t }            = useLanguage();
+    const { can }          = useAuth();
 
     /* SSR guard */
     if (typeof window === 'undefined') return null;
 
-    const navItems = getSettingsNavItems(t);
+    const navItems = getSettingsNavItems(t, can('manage:users'), can('settings:advanced'));
 
     return (
         <div className="animate-fade-in px-4 py-6 sm:px-6 lg:px-8">

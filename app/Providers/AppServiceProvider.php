@@ -39,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureDefaults();
         $this->configurePermissions();
+        app(\App\Services\SmtpSettingsService::class)->apply();
     }
 
     protected function configurePermissions(): void

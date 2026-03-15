@@ -7,15 +7,15 @@ use App\Models\User;
 use App\Services\BankAccountService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class, WithoutMiddleware::class);
+uses(TestCase::class, RefreshDatabase::class, WithoutMiddleware::class);
 
 test('can create business bank account', function () {
     // Arrange
     $user = User::factory()->create();
-    $this->actingAs($user);
 
-    $service = new BankAccountService();
+    $service = new BankAccountService;
 
     $requestData = [
         'account_name' => 'Test Business Account',
@@ -27,19 +27,21 @@ test('can create business bank account', function () {
         'iban' => 'SA1234567890123456789012',
         'holder_name_ar' => 'اختبار الشركة',
         'holder_name_en' => 'Test Company',
-        
+
         // Business specific fields
         'business_name' => 'Test Business LLC',
         'business_type' => 'LLC',
         'tax_id' => '1234567890',
         'business_address' => '123 Test Street, Riyadh, Saudi Arabia',
         'business_phone' => '+966501234567',
+        'establishment_type' => 'LLC',
+        'business_sector' => 'Technology',
         'commercial_reg_number' => '1234567890',
         'authorized_signatory_name' => 'John Doe',
         'authorized_signatory_id' => '1234567890',
         'signatory_position' => 'CEO',
         'beneficial_ownership_percentage' => 100,
-        
+
         'is_default' => false,
         'is_active' => true,
     ];
@@ -47,6 +49,9 @@ test('can create business bank account', function () {
     // Create request manually
     $request = StoreBankAccountRequest::create('/bank-accounts', 'POST', $requestData);
     $request->setUserResolver(fn () => $user);
+    $request->setContainer(app());
+    $request->setRedirector(app('redirect'));
+    $request->validateResolved();
 
     // Act
     $bankAccount = $service->create($request);
@@ -56,7 +61,7 @@ test('can create business bank account', function () {
     expect($bankAccount->id)->not->toBeNull();
     expect($bankAccount->account_category)->toBe('business');
     expect($bankAccount->business)->not->toBeNull();
-    
+
     // Check business details
     $businessDetails = $bankAccount->business;
     expect($businessDetails->business_name)->toBe('Test Business LLC');

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBeneficiaryRequest;
+use App\Http\Requests\UpdateBeneficiaryRequest;
 use App\Models\Beneficiary;
 use App\Services\BeneficiaryService;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class BeneficiaryController extends Controller
 {
@@ -18,7 +20,7 @@ class BeneficiaryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
         return Inertia::render('beneficiaries', [
             'beneficiaries' => auth()->user()->beneficiaries()
@@ -35,7 +37,7 @@ class BeneficiaryController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('Createbeneficiary');
     }
@@ -43,7 +45,7 @@ class BeneficiaryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBeneficiaryRequest $request)
+    public function store(StoreBeneficiaryRequest $request): RedirectResponse
     {
         $this->beneficiaryService->create($request);
 
@@ -61,17 +63,24 @@ class BeneficiaryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Beneficiary $beneficiary)
+    public function edit(Beneficiary $beneficiary): Response
     {
-        //
+        return Inertia::render('Createbeneficiary', [
+            'beneficiary' => collect($beneficiary->toArray())->mapWithKeys(function ($value, $key) {
+                return [Str::camel($key) => $value];
+            }),
+            'isEdit' => true,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Beneficiary $beneficiary)
+    public function update(UpdateBeneficiaryRequest $request, Beneficiary $beneficiary): RedirectResponse
     {
-        //
+        $this->beneficiaryService->update($beneficiary, $request->validated());
+
+        return to_route('beneficiaries.index');
     }
 
     /**

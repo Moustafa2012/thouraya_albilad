@@ -4,6 +4,7 @@ import {
     Banknote,
     BookOpen,
     CreditCard,
+    ArrowLeftRight,
     FileClock,
     LayoutGrid,
     Users,
@@ -48,9 +49,9 @@ const getNavSections = (t: (en: string, ar: string) => string): NavSection[] => 
         label: t('Financial', 'المالية'),
         items: [
             {
-                title: t('Transactions', 'المعاملات'),
-                href: '/transactions',
-                icon: CreditCard, 
+                title: t('Transfers', 'التحويلات'),
+                href: '/transfers',
+                icon: ArrowLeftRight,
             },
             {
                 title: t('Bank Accounts', 'الحسابات البنكية'),
@@ -58,7 +59,7 @@ const getNavSections = (t: (en: string, ar: string) => string): NavSection[] => 
                 icon: Banknote,
             },
             {
-                title: t('Journals', 'اليوميات'),
+                title: t('Various Journals entries ', 'القيود المختلفة'),
                 href: '/journals',
                 icon: BookOpen,
             },
@@ -94,9 +95,9 @@ const getMainNavItems = (t: (en: string, ar: string) => string): NavItem[] => [
         icon: LayoutGrid,
     },
     {
-        title: t('Transactions', 'المعاملات'),
-        href: '/transactions',
-        icon: CreditCard,
+        title: t('Transfers', 'التحويلات'),
+        href: '/transfers',
+        icon: ArrowLeftRight,
     },
     {
         title: t('Beneficiaries', 'المستفيدون'),
@@ -109,7 +110,7 @@ const getMainNavItems = (t: (en: string, ar: string) => string): NavItem[] => [
         icon: Banknote,
     },
     {
-        title: t('Journals', 'اليوميات'),
+        title: t('Various Journals entries ', 'القيود المختلفة'),
         href: '/journals',
         icon: BookOpen,
     },

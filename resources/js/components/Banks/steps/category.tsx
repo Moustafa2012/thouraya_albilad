@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { CreditCard, Globe, Hash, Lock, Shield } from 'lucide-react';
 import { useState, useCallback } from 'react';
+import { GlassField, inputCls } from '@/components/ui/GlassField';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -10,7 +11,6 @@ import { normalizeIBAN, validateIBAN } from '@/types/Banking shared.types';
 import { CURRENCIES } from '../BankAccountData';
 import { getAccountTypeOptions } from '../BankAccountValidation';
 import type { AccountTypeValue, CommonStepProps } from '../types';
-import { GlassField, inputCls } from '@/components/ui/GlassField';
 
 function InternationalRoutingSection({ formData, errors, isRtl, t, onChange }: {
   formData: { bankCountry: string; swiftCode: string; routingNumber: string; sortCode: string; ifscCode: string; bankleitzahl: string; correspondentBank: string; correspondentSwift: string };

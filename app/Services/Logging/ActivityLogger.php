@@ -4,7 +4,6 @@ namespace App\Services\Logging;
 
 use App\Models\User;
 use App\Models\UserActivityLog;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -43,14 +42,13 @@ class ActivityLogger
             'session_id' => session()->getId(),
         ]);
 
-        // user_id is required (NOT NULL), so always provide it
-        // If no authenticated user, use system user (ID 1 - assuming it exists)
-        if (Auth::check()) {
-            $logData['user_id'] = Auth::id();
-        } else {
-            // Use system user or first available user for system logs
-            $systemUser = User::where('email', 'admin@example.com')->first() ?? User::first();
-            $logData['user_id'] = $systemUser->id;
+        if (! array_key_exists('user_id', $logData) || $logData['user_id'] === null) {
+            if (Auth::check()) {
+                $logData['user_id'] = Auth::id();
+            } else {
+                $systemUser = User::where('email', 'admin@example.com')->first() ?? User::first();
+                $logData['user_id'] = $systemUser?->id ?? 1;
+            }
         }
 
         // Only include session_id if it exists in the sessions table

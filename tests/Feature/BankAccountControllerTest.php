@@ -52,6 +52,11 @@ class BankAccountControllerTest extends TestCase
             'account_type' => 'current',
             'status' => 'active',
             'is_default' => true,
+            'is_active' => true,
+            'metadata' => [
+                'holderPhone' => '0500000000',
+                'holderEmail' => 'holder@example.com',
+            ],
 
             // Personal specific fields
             'account_holder_name' => 'Mohammed Ahmed',
@@ -78,6 +83,9 @@ class BankAccountControllerTest extends TestCase
         // Verify encrypted fields
         $this->assertEquals('1234', $bankAccount->details->ssn_last_4);
         $this->assertEquals('1990-01-01', $bankAccount->details->date_of_birth);
+
+        $this->assertIsArray($bankAccount->metadata);
+        $this->assertSame('0500000000', $bankAccount->metadata['holderPhone']);
     }
 
     public function test_user_can_create_business_bank_account()
@@ -100,6 +108,9 @@ class BankAccountControllerTest extends TestCase
             'currency' => 'SAR',
             'account_type' => 'business',
             'status' => 'active',
+            'metadata' => [
+                'bankCity' => 'Riyadh',
+            ],
 
             // Business specific fields
             'business_name' => 'Tech Company',
@@ -134,6 +145,9 @@ class BankAccountControllerTest extends TestCase
         $this->assertEquals('Riyadh, Saudi Arabia', $bankAccount->details->business_address);
         // Verify float cast
         $this->assertEquals(100.00, $bankAccount->details->beneficial_ownership_percentage);
+
+        $this->assertIsArray($bankAccount->metadata);
+        $this->assertSame('Riyadh', $bankAccount->metadata['bankCity']);
     }
 
     public function test_validation_errors_for_required_fields()
@@ -143,10 +157,19 @@ class BankAccountControllerTest extends TestCase
 
         $response = $this->post(route('bank-accounts.store'), []);
 
-        $response->assertSessionHasErrors(['account_category', 'bank_name', 'account_number']);
+        $response->assertSessionHasErrors([
+            'account_category',
+            'account_type',
+            'currency',
+            'holder_name_ar',
+            'holder_name_en',
+            'bank_name',
+            'account_number',
+            'iban',
+        ]);
     }
 
-    public function test_routing_number_must_be_valid_format_on_create()
+    public function test_routing_number_is_optional_and_free_form_on_create()
     {
         $user = User::factory()->create();
         $this->actingAs($user);
@@ -166,14 +189,18 @@ class BankAccountControllerTest extends TestCase
             'currency' => 'SAR',
             'account_type' => 'current',
             'status' => 'active',
+            'is_active' => true,
+            'metadata' => [],
+            'account_holder_name' => 'Mohammed Ahmed',
+            'date_of_birth' => '1990-01-01',
+            'ssn_last_4' => '1234',
         ];
 
         $response = $this->from(route('bank-accounts.create'))
             ->post(route('bank-accounts.store'), $payload);
 
-        $response->assertSessionHasErrors([
-            'routing_number' => 'Invalid routing number format',
-        ]);
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('bank-accounts.index'));
     }
 
     public function test_validation_errors_for_personal_specific_fields()
@@ -184,17 +211,21 @@ class BankAccountControllerTest extends TestCase
         $payload = [
             'account_category' => 'personal',
             // Missing personal fields
+            'holder_name_ar' => 'محمد أحمد',
+            'holder_name_en' => 'Mohammed Ahmed',
             'bank_name' => 'Test Bank',
             'account_number' => '123',
+            'iban' => 'SA2222222222222222222222',
             'currency' => 'USD',
+            'account_type' => 'current',
         ];
 
         $response = $this->post(route('bank-accounts.store'), $payload);
 
-        $response->assertSessionHasErrors(['date_of_birth', 'ssn_last_4']);
+        $response->assertSessionHasErrors(['account_holder_name', 'date_of_birth', 'ssn_last_4']);
     }
 
-    public function test_routing_number_must_be_valid_format_on_update()
+    public function test_routing_number_is_optional_and_free_form_on_update()
     {
         $user = User::factory()->create();
         $this->actingAs($user);
@@ -219,6 +250,7 @@ class BankAccountControllerTest extends TestCase
             'bank_name' => 'Updated Bank',
             'bank_country' => 'US',
             'account_number' => '999999',
+            'iban' => 'SA3333333333333333333333',
             'currency' => 'USD',
             'account_type' => 'current',
             'status' => 'active',
@@ -227,9 +259,8 @@ class BankAccountControllerTest extends TestCase
         $response = $this->from(route('bank-accounts.edit', $bankAccount))
             ->put(route('bank-accounts.update', $bankAccount), $payload);
 
-        $response->assertSessionHasErrors([
-            'routing_number' => 'Invalid routing number format',
-        ]);
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('bank-accounts.index'));
     }
 
     public function test_user_can_update_bank_account()
@@ -260,9 +291,13 @@ class BankAccountControllerTest extends TestCase
             'bank_name' => 'Updated Bank',
             'bank_country' => 'US', // Changed country
             'account_number' => '999999',
+            'iban' => 'SA4444444444444444444444',
             'currency' => 'USD',
             'account_type' => 'current',
             'status' => 'active',
+            'metadata' => [
+                'holderPhone' => '0500000001',
+            ],
 
             // Personal fields
             'account_holder_name' => 'Updated Name',
@@ -283,6 +318,8 @@ class BankAccountControllerTest extends TestCase
         $bankAccount->details->refresh();
         $this->assertEquals('9999', $bankAccount->details->ssn_last_4);
         $this->assertEquals('1995-05-05', $bankAccount->details->date_of_birth);
+        $this->assertIsArray($bankAccount->metadata);
+        $this->assertSame('0500000001', $bankAccount->metadata['holderPhone']);
     }
 
     public function test_user_can_delete_bank_account()

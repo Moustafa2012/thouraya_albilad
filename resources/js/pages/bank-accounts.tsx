@@ -170,7 +170,7 @@ export default function BankAccounts() {
 
         <div className="flex flex-1 flex-col gap-6 p-6">
           {accounts.length > 0 && (
-            <BankAccountsStats accounts={accounts} t={t} isRtl={isRtl} />
+            <BankAccountsStats accounts={accounts} t={t} />
           )}
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">

@@ -19,7 +19,7 @@ class BankAccount extends Model
     {
         return [
             'account_number' => 'encrypted',
-            'iban' => 'encrypted',
+            'iban' => 'encrypted:deterministic',
             'swift_code' => 'encrypted',
             'holder_id' => 'encrypted',
             'metadata' => 'array',

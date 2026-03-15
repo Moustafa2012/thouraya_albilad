@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Pagination } from './types';
 import { useLanguage } from '@/components/language-provider';
+import type { Pagination } from './types';
 
 interface AuditLogsPaginationProps {
   pagination: Pagination;

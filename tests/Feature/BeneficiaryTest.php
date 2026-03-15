@@ -64,3 +64,57 @@ test('beneficiary can be deleted', function () {
         'id' => $beneficiary->id,
     ]);
 });
+
+test('beneficiary can be edited', function () {
+    $user = User::factory()->create();
+    $beneficiary = Beneficiary::factory()->create([
+        'user_id' => $user->id,
+        'name_en' => 'Old Name',
+        'bank_name' => 'Old Bank',
+    ]);
+
+    $payload = [
+        'accountType' => 'individual',
+        'nameAr' => 'اسم جديد',
+        'nameEn' => 'New Name',
+        'nationalId' => '1234567890',
+        'businessRegistration' => null,
+        'taxId' => null,
+        'email' => null,
+        'phone' => null,
+        'address' => null,
+        'country' => 'SA',
+        'bankName' => 'New Bank',
+        'accountNumber' => '1234567890',
+        'iban' => 'SA0380000000608010167519',
+        'swiftCode' => 'RJHIXS',
+        'currency' => 'SAR',
+        'abaNumber' => null,
+        'routingNumber' => null,
+        'ifscCode' => null,
+        'sortCode' => null,
+        'bsbNumber' => null,
+        'transitNumber' => null,
+        'category' => 'other',
+        'notes' => 'Updated beneficiary',
+    ];
+
+    $this->actingAs($user)
+        ->get("/beneficiaries/{$beneficiary->id}/edit")
+        ->assertStatus(200)
+        ->assertInertia(fn ($page) => $page
+            ->component('Createbeneficiary')
+            ->where('isEdit', true)
+            ->where('beneficiary.id', $beneficiary->id)
+        );
+
+    $this->actingAs($user)
+        ->put("/beneficiaries/{$beneficiary->id}", $payload)
+        ->assertRedirect(route('beneficiaries.index'));
+
+    $this->assertDatabaseHas('beneficiaries', [
+        'id' => $beneficiary->id,
+        'name_en' => 'New Name',
+        'bank_name' => 'New Bank',
+    ]);
+});
