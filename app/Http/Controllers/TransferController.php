@@ -51,6 +51,12 @@ class TransferController extends Controller
             ->latest()
             ->get();
 
+        // Generate next reference number
+        $nextReferenceNumber = Transfer::nextTransferNumber(
+            (string) date('Y'), 
+            (string) date('m')
+        );
+
         $balanceInfo = null;
         $bankAccountId = $request->query('bankAccountId');
         $amount = $request->query('amount');
@@ -82,6 +88,7 @@ class TransferController extends Controller
             'accounts' => BankAccountResource::collection($accounts)->toArray($request),
             'beneficiaries' => $beneficiaries,
             'balanceInfo' => $balanceInfo,
+            'nextReferenceNumber' => $nextReferenceNumber,
         ]);
     }
 
@@ -166,7 +173,7 @@ class TransferController extends Controller
             'reference_number' => (string) $validated['referenceNumber'],
             'notes' => (string) $validated['notes'],
             'authorized_by' => (string) $validated['authorizedBy'],
-            'transfer_number' => Transfer::nextTransferNumber(now()->format('Y')),
+            'transfer_number' => Transfer::nextTransferNumber(now()->format('Y'), now()->format('m')),
             'document_hash' => hash('sha256', json_encode($validated, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: ''),
             'bank_email' => $bankAccount->bank_email,
             'status' => 'draft',

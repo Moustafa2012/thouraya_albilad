@@ -21,18 +21,20 @@ class Transfer extends Model
 
             $transferDate = $transfer->transfer_date ?? now();
             $year = is_string($transferDate) ? substr($transferDate, 0, 4) : $transferDate->format('Y');
+            $month = is_string($transferDate) ? substr($transferDate, 5, 2) : $transferDate->format('m');
 
-            $transfer->transfer_number = static::nextTransferNumber($year);
+            $transfer->transfer_number = static::nextTransferNumber($year, $month);
         });
     }
 
     /**
-     * Generate next transfer number for the given year: TBT-{YEAR}-{4-DIGIT-SEQUENCE}.
+     * Generate next transfer number for the given month: TR-YYYY-MM-{3-DIGIT-SEQUENCE}.
      */
-    public static function nextTransferNumber(?string $year = null): string
+    public static function nextTransferNumber(?string $year = null, ?string $month = null): string
     {
         $year = $year ?? (string) date('Y');
-        $prefix = "TBT-{$year}-";
+        $month = $month ?? (string) date('m');
+        $prefix = "TR-{$year}-{$month}-";
 
         $last = static::query()
             ->where('transfer_number', 'like', $prefix.'%')
@@ -41,11 +43,11 @@ class Transfer extends Model
             ->value('transfer_number');
 
         $seq = 1;
-        if ($last && preg_match('/^TBT-\d{4}-(\d+)$/', $last, $m)) {
+        if ($last && preg_match('/^TR-\d{4}-\d{2}-(\d+)$/', $last, $m)) {
             $seq = (int) $m[1] + 1;
         }
 
-        return $prefix.sprintf('%04d', $seq);
+        return $prefix.sprintf('%03d', $seq);
     }
 
     protected function casts(): array

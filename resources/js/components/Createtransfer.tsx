@@ -32,6 +32,7 @@ type PageProps = {
   accounts?: BankAccount[];
   beneficiaries?: Beneficiary[];
   balanceInfo?: { balance: number; currency: string; sufficient: boolean } | null;
+  nextReferenceNumber?: string;
   flash?: { success?: string; error?: string };
 };
 
@@ -41,7 +42,7 @@ const INITIAL_FORM_DATA: TransferFormData = {
   amount: '',
   currency: '',
   transferDate: '',
-  referenceNumber: '',
+  referenceNumber: '', // Will be set from backend prop
   notes: '',
 };
 
@@ -75,7 +76,7 @@ function formatMoney(amount: number, currency: string, isRtl: boolean): string {
 
 export default function CreateTransfer() {
   const page = usePage();
-  const { accounts = [], beneficiaries = [], balanceInfo: balanceInfoProp = null, flash } = page.props as unknown as PageProps;
+  const { accounts = [], beneficiaries = [], balanceInfo: balanceInfoProp = null, nextReferenceNumber, flash } = page.props as unknown as PageProps;
 
   const { t, direction } = useLanguage();
   const isRtl = direction === 'rtl';
@@ -105,6 +106,13 @@ export default function CreateTransfer() {
   useEffect(() => {
     setBalanceInfo(balanceInfoProp);
   }, [balanceInfoProp]);
+
+  // Set auto-generated reference number
+  useEffect(() => {
+    if (nextReferenceNumber) {
+      form.setData('referenceNumber', nextReferenceNumber);
+    }
+  }, [nextReferenceNumber]);
 
   const selectedAccount = useMemo(() => accounts.find((a) => a.id === form.data.bankAccountId) ?? null, [accounts, form.data.bankAccountId]);
   const selectedBeneficiary = useMemo(() => beneficiaries.find((b) => b.id === form.data.beneficiaryId) ?? null, [beneficiaries, form.data.beneficiaryId]);
@@ -253,7 +261,7 @@ export default function CreateTransfer() {
                         </SelectTrigger>
                         <SelectContent>
                           {accounts.map((a) => (
-                            <SelectItem key={a.id} value={a.id}>
+                            <SelectItem key={a.id} value={String(a.id)}>
                               {(a.bankName ? `${a.bankName} · ` : '') + (a.iban ? a.iban.slice(0, 6) + '••••' + a.iban.slice(-4) : a.id)}
                             </SelectItem>
                           ))}
@@ -273,7 +281,7 @@ export default function CreateTransfer() {
                         </SelectTrigger>
                         <SelectContent>
                           {beneficiaries.map((b) => (
-                            <SelectItem key={b.id} value={b.id}>
+                            <SelectItem key={b.id} value={String(b.id)}>
                               {(b.nameAr || b.nameEn) + (b.bankName ? ` · ${b.bankName}` : '')}
                             </SelectItem>
                           ))}
@@ -357,7 +365,8 @@ export default function CreateTransfer() {
                       <Input
                         value={form.data.referenceNumber}
                         onChange={(e) => set('referenceNumber', e.target.value)}
-                        placeholder={t('e.g. INV-2026-001', 'مثال: INV-2026-001')}
+                        placeholder={t('Auto-generated', 'توليد تلقائي')}
+                        readOnly
                         className={cn('h-10 bg-background/60', errors.referenceNumber && 'border-destructive')}
                       />
                       {errors.referenceNumber && <p className="text-xs font-medium text-destructive">{errors.referenceNumber}</p>}
