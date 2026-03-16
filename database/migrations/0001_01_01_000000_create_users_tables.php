@@ -248,7 +248,7 @@ return new class extends Migration
         // User login history table for security tracking
         Schema::create('user_login_history', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('ip_address', 45);
             $table->text('user_agent');
             $table->string('device_type', 50)->nullable();

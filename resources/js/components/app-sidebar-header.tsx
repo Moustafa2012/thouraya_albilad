@@ -1,6 +1,7 @@
 import { Globe, Moon, Sun } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { useLanguage } from '@/components/language-provider';
+import { TopNavUser } from '@/components/top-nav-user';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -71,6 +72,7 @@ export function AppSidebarHeader({
                             : t('Dark Mode', 'الوضع الليلي')}
                     </span>
                 </Button>
+                <TopNavUser />
             </div>
         </header>
     );

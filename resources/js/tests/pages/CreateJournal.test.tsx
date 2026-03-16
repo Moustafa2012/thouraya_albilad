@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import CreateJournal from '@/pages/Createjournal';
@@ -9,18 +10,48 @@ vi.mock('@/components/language-provider', () => ({
   })),
 }));
 
-vi.mock('@inertiajs/react', () => ({
-  router: {
+vi.mock('@inertiajs/react', () => {
+  const router = {
     post: vi.fn(),
-  },
-  usePage: vi.fn(() => ({
-    props: {
-      flash: {},
-    },
-  })),
-  Head: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+  };
+
+  const useForm = (initial: any) => {
+    const [data, setDataState] = React.useState(initial);
+    const [processing] = React.useState(false);
+    const [errors] = React.useState({});
+
+    const setData = (key: any, value?: any) => {
+      if (typeof key === 'string') {
+        setDataState((prev: any) => ({ ...prev, [key]: value }));
+      } else {
+        setDataState(key);
+      }
+    };
+
+    return {
+      data,
+      setData,
+      processing,
+      errors,
+      clearErrors: vi.fn(),
+      post: (url: string, options?: any) => {
+        router.post(url, data, options);
+      },
+    };
+  };
+
+  return {
+    router,
+    useForm,
+    usePage: vi.fn(() => ({
+      props: {
+        flash: {},
+      },
+    })),
+    Head: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  };
+});
 
 vi.mock('@/layouts/app-layout', () => ({
   default: ({ children, breadcrumbs }: { children: React.ReactNode; breadcrumbs: any[] }) => (
@@ -72,4 +103,3 @@ describe('CreateJournal page', () => {
     });
   });
 });
-

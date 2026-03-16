@@ -1,15 +1,12 @@
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
-    BadgeCheck,
     Bell,
     KeyRound,
     LayoutDashboard,
     LogOut,
     Palette,
-    Settings,
     Shield,
     ShieldCheck,
-    SlidersHorizontal,
     User as UserIcon,
     UserCog,
 } from 'lucide-react';
@@ -52,7 +49,7 @@ function getRoleMenuItems(
         });
     }
 
-    if (role === ROLES.SUPER_ADMIN || role === ROLES.ADMIN) {
+    if (role === ROLES.SUPER_ADMIN || role === ROLES.ADMIN || role === ROLES.MANAGER) {
         items.push({
             href: '/admin/users',
             label: t ? t('Manage Users', 'إدارة المستخدمين') : 'Manage Users',
@@ -104,19 +101,21 @@ export function UserMenuContent({ user }: Props) {
                 </>
             )}
 
-            {/* Core navigation */}
-            <DropdownMenuGroup>
-                <DropdownMenuItem asChild>
-                    <Link
-                        href={dashboard()}
-                        className="flex cursor-pointer items-center gap-2"
-                        onClick={cleanup}
-                    >
-                        <LayoutDashboard className="size-4 text-muted-foreground" />
-                        <span>{t('Dashboard', 'لوحة التحكم')}</span>
-                    </Link>
-                </DropdownMenuItem>
-            </DropdownMenuGroup>
+            {/* Dashboard link — only for ADMIN and SUPER_ADMIN; VISITOR stays on Welcome */}
+            {(role === ROLES.SUPER_ADMIN || role === ROLES.ADMIN || role === ROLES.MANAGER) && (
+                <DropdownMenuGroup>
+                    <DropdownMenuItem asChild>
+                        <Link
+                            href={dashboard()}
+                            className="flex cursor-pointer items-center gap-2"
+                            onClick={cleanup}
+                        >
+                            <LayoutDashboard className="size-4 text-muted-foreground" />
+                            <span>{t('Dashboard', 'لوحة التحكم')}</span>
+                        </Link>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+            )}
 
             <DropdownMenuSeparator />
 

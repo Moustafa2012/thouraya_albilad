@@ -30,28 +30,28 @@ class UpdateBankAccountRequest extends FormRequest
             // Holder Details
             'holder_name_ar' => ['sometimes', 'required', 'string', 'max:255'],
             'holder_name_en' => ['sometimes', 'required', 'string', 'max:255'],
-            'holder_id_type' => ['nullable', 'string', 'max:255'],
-            'holder_id' => ['nullable', 'string', 'max:255'],
+            'holder_id_type' => ['nullable', 'string', 'max:50'],
+            'holder_id' => ['nullable', 'string', 'max:50'],
 
             // Bank Details
             'bank_name' => ['sometimes', 'required', 'string', 'max:255'],
-            'bank_country' => ['nullable', 'string', 'max:255'],
+            'bank_country' => ['nullable', 'string', 'max:100'],
             'bank_address' => ['nullable', 'string', 'max:255'],
-            'bank_phone' => ['nullable', 'string', 'max:255'],
+            'bank_phone' => ['nullable', 'string', 'max:50'],
             'bank_email' => ['nullable', 'email', 'max:255'],
 
             // Account Details
-            'account_number' => ['sometimes', 'required', 'string', 'max:255'],
+            'account_number' => ['sometimes', 'required', 'string', 'max:50'],
             'iban' => ['sometimes', 'required', 'string', 'max:34', Rule::unique('bank_accounts', 'iban')->ignore($id)],
             'swift_code' => ['nullable', 'string', 'max:11'],
             'currency' => ['sometimes', 'required', 'string', 'size:3'],
             'branch_name' => ['nullable', 'string', 'max:255'],
-            'branch_code' => ['nullable', 'string', 'max:255'],
-            'routing_number' => ['nullable', 'string', 'max:255'],
-            'sort_code' => ['nullable', 'string', 'max:255'],
+            'branch_code' => ['nullable', 'string', 'max:50'],
+            'routing_number' => ['nullable', 'string', 'max:50'],
+            'sort_code' => ['nullable', 'string', 'max:50'],
 
             // Classification
-            'account_type' => ['sometimes', 'required', 'string', 'max:255'],
+            'account_type' => ['sometimes', 'required', 'string', 'max:50'],
             'account_category' => ['sometimes', 'required', 'string', 'in:personal,business'],
 
             // Status & Flags

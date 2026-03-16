@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { AnimatePresence } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { AuditLogCard } from '@/components/AuditLogs/AuditLogCard';
 import { AuditLogsEmptyState } from '@/components/AuditLogs/AuditLogsEmptyState';
 import { AuditLogsHeader } from '@/components/AuditLogs/AuditLogsHeader';
@@ -28,63 +28,34 @@ export default function AuditLogs({ logs = [], pagination }: { logs?: AuditLog[]
   ];
 
   const [filters, setFilters] = useState<AuditLogFilters>(INITIAL_FILTERS);
-  const [currentPage, setCurrentPage] = useState(pagination?.current_page || 1);
   const [perPage, setPerPage] = useState(pagination?.per_page || 50);
 
-  const filteredLogs = useMemo(() => {
-    return logs.filter((log) => {
-      if (filters.search) {
-        const q = filters.search.toLowerCase();
-        const matches =
-          log.description.toLowerCase().includes(q) ||
-          (log.userName && log.userName.toLowerCase().includes(q)) ||
-          (log.userEmail && log.userEmail.toLowerCase().includes(q)) ||
-          (log.ipAddress && log.ipAddress.includes(q)) ||
-          log.action.includes(q) ||
-          log.resource.includes(q);
-        if (!matches) return false;
-      }
-      
-      if (filters.action !== 'all' && log.action !== filters.action) return false;
-      if (filters.resource !== 'all' && log.resource !== filters.resource) return false;
-      if (filters.severity !== 'all' && log.severity !== filters.severity) return false;
-      
-      if (filters.dateRange !== 'all') {
-        const logDate = new Date(log.createdAt);
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        
-        switch (filters.dateRange) {
-          case 'today':
-            if (logDate < today) return false;
-            break;
-          case 'week':
-            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-            if (logDate < weekAgo) return false;
-            break;
-          case 'month':
-            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-            if (logDate < monthAgo) return false;
-            break;
-        }
-      }
-      
-      return true;
-    });
-  }, [logs, filters]);
-
   function handleFiltersChange(partial: Partial<AuditLogFilters>) {
-    setFilters((prev) => ({ ...prev, ...partial }));
-    setCurrentPage(1);
+    const nextFilters = { ...filters, ...partial };
+    setFilters(nextFilters);
+    router.get('/audit-logs', buildQueryParams(1, perPage, nextFilters), {
+      preserveState: true,
+      replace: true,
+    });
+  }
+
+  function buildQueryParams(pageNum: number, perPageNum: number, f: AuditLogFilters) {
+    const params: Record<string, string | number | undefined> = {
+      page: pageNum,
+      per_page: perPageNum,
+      search: f.search || undefined,
+      action: f.action !== 'all' ? f.action : undefined,
+      severity: f.severity !== 'all' ? f.severity : undefined,
+      date_range: f.dateRange !== 'all' ? f.dateRange : undefined,
+    };
+    if (f.dateRange === 'custom' && f.startDate) params.start_date = typeof f.startDate === 'string' ? f.startDate : (f.startDate as Date).toISOString().slice(0, 10);
+    if (f.dateRange === 'custom' && f.endDate) params.end_date = typeof f.endDate === 'string' ? f.endDate : (f.endDate as Date).toISOString().slice(0, 10);
+    if (f.userId) params.user_id = f.userId;
+    return params;
   }
 
   function handlePageChange(page: number) {
-    setCurrentPage(page);
-    router.get('/audit-logs', {
-      page,
-      per_page: perPage,
-      ...filters,
-    }, {
+    router.get('/audit-logs', buildQueryParams(page, perPage, filters), {
       preserveState: true,
       replace: true,
     });
@@ -92,12 +63,7 @@ export default function AuditLogs({ logs = [], pagination }: { logs?: AuditLog[]
 
   function handlePerPageChange(newPerPage: number) {
     setPerPage(newPerPage);
-    setCurrentPage(1);
-    router.get('/audit-logs', {
-      page: 1,
-      per_page: newPerPage,
-      ...filters,
-    }, {
+    router.get('/audit-logs', buildQueryParams(1, newPerPage, filters), {
       preserveState: true,
       replace: true,
     });
@@ -105,6 +71,10 @@ export default function AuditLogs({ logs = [], pagination }: { logs?: AuditLog[]
 
   function handleClearFilters() {
     setFilters(INITIAL_FILTERS);
+    router.get('/audit-logs', buildQueryParams(1, perPage, INITIAL_FILTERS), {
+      preserveState: true,
+      replace: true,
+    });
   }
 
   const hasActiveFilters =

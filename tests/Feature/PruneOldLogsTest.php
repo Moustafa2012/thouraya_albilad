@@ -2,9 +2,9 @@
 
 use App\Jobs\PruneOldLogs;
 use App\Models\AuditLog;
+use App\Models\User;
 use App\Models\UserActivityLog;
 use App\Models\UserLoginHistory;
-use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -61,9 +61,8 @@ test('archive logs before pruning', function () {
     $job = new PruneOldLogs('activity', 365, true);
     $job->handle();
 
-    Storage::disk('local')->assertExists(function ($path) {
-        return str_contains($path, 'archives/activity_logs_') && str_ends_with($path, '.json');
-    });
+    $files = Storage::disk('local')->allFiles('archives');
+    expect(collect($files)->contains(fn (string $path) => str_contains($path, 'activity_logs_') && str_ends_with($path, '.json')))->toBeTrue();
 
     expect(UserActivityLog::count())->toBe(0);
 });
@@ -91,8 +90,8 @@ test('prune logs detailed logging', function () {
     Log::shouldReceive('info')->once()->with(\Mockery::on(function ($message) {
         return str_contains($message, 'Pruned 3 old activity logs');
     }), \Mockery::on(function ($context) {
-        return isset($context['log_type']) && 
-               isset($context['days_kept']) && 
+        return isset($context['log_type']) &&
+               isset($context['days_kept']) &&
                isset($context['cutoff_date']);
     }));
 
@@ -107,12 +106,12 @@ test('archive logs on failure continues pruning', function () {
         'created_at' => now()->subDays(400),
     ]);
 
+    Log::shouldReceive('error')->once();
+    Log::shouldReceive('info')->zeroOrMoreTimes();
     Storage::shouldReceive('disk')->andThrow(new \Exception('Storage error'));
 
     $job = new PruneOldLogs('activity', 365, true);
     $job->handle();
-
-    Log::shouldReceive('error')->once();
 
     expect(UserActivityLog::count())->toBe(0);
 });

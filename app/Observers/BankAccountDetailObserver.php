@@ -2,10 +2,8 @@
 
 namespace App\Observers;
 
-use App\Models\AuditLog;
+use App\Services\Logging\AuditLogger;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Request;
 
 class BankAccountDetailObserver
 {
@@ -38,19 +36,12 @@ class BankAccountDetailObserver
 
     protected function log(Model $model, string $action, ?array $old = null, ?array $new = null): void
     {
-        // We want to link this to the parent BankAccount if possible
-        // But AuditLog is polymorphic on auditable.
-        // We can log it as the detail model.
-
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'action' => $action,
-            'auditable_type' => get_class($model),
-            'auditable_id' => $model->id,
-            'old_values' => $old,
-            'new_values' => $new,
-            'ip_address' => Request::ip(),
-            'user_agent' => Request::userAgent(),
-        ]);
+        app(AuditLogger::class)->log(
+            model: $model,
+            action: $action,
+            oldValues: $old,
+            newValues: $new,
+            description: $action,
+        );
     }
 }

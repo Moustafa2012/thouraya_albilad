@@ -45,7 +45,7 @@ export const REGEX = {
   EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   PHONE: /^\+?[\d\s\-().]{7,20}$/,
   ARABIC: /[\u0600-\u06FF]/,
-  ENGLISH_NAME: /^[a-zA-Z\s.'\-]+$/,
+  ENGLISH_NAME: /^[a-zA-Z\s.'-]+$/,
 };
 
 function ibanChecksum(iban: string): boolean {

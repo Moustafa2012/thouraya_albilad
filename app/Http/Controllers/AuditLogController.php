@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
-use App\Models\UserActivityLog;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Models\UserActivityLog;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -14,13 +15,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
-use Carbon\Carbon;
 
 class AuditLogController extends Controller
 {
-    private const PER_PAGE_MAX    = 100;
+    private const PER_PAGE_MAX = 100;
+
     private const PER_PAGE_DEFAULT = 50;
-    private const CACHE_TTL_LOGS  = 5;   // minutes
+
+    private const CACHE_TTL_LOGS = 5;   // minutes
+
     private const CACHE_TTL_STATS = 15;  // minutes
 
     // -------------------------------------------------------------------------
@@ -28,68 +31,72 @@ class AuditLogController extends Controller
     // -------------------------------------------------------------------------
 
     private const ACTION_MAP = [
-        'create'   => 'create',
-        'update'   => 'update',
-        'delete'   => 'delete',
-        'login'    => 'login',
-        'logout'   => 'logout',
-        'view'     => 'view',
-        'export'   => 'export',
-        'import'   => 'import',
-        'approve'  => 'approve',
-        'reject'   => 'reject',
+        'create' => 'create',
+        'update' => 'update',
+        'delete' => 'delete',
+        'login' => 'login',
+        'logout' => 'logout',
+        'view' => 'view',
+        'export' => 'export',
+        'import' => 'import',
+        'sent_email' => 'sent_email',
+        'email' => 'sent_email',
+        'approve' => 'approve',
+        'reject' => 'reject',
     ];
 
     private const SEVERITY_CRITICAL_KEYWORDS = ['delete', 'suspend', 'lock', 'ban', 'revoke'];
-    private const SEVERITY_WARNING_KEYWORDS  = ['failed', 'suspicious', 'denied', 'blocked'];
+
+    private const SEVERITY_WARNING_KEYWORDS = ['failed', 'suspicious', 'denied', 'blocked'];
 
     private const ACTIVITY_SEVERITY_MAP = [
-        'login_failed'          => 'warning',
-        'account_locked'        => 'warning',
-        'concurrent_sessions'   => 'warning',
-        'new_device_detected'   => 'warning',
+        'login_failed' => 'warning',
+        'account_locked' => 'warning',
+        'concurrent_sessions' => 'warning',
+        'new_device_detected' => 'warning',
         'new_location_detected' => 'warning',
-        'two_factor_disabled'   => 'warning',
+        'two_factor_disabled' => 'warning',
     ];
 
     private const ACTIVITY_ACTION_MAP = [
-        'login'                  => 'login',
-        'logout'                 => 'logout',
-        'login_failed'           => 'login',
-        'password_changed'       => 'update',
-        'password_reset'         => 'update',
-        'profile_updated'        => 'update',
-        'two_factor_enabled'     => 'create',
-        'two_factor_disabled'    => 'delete',
-        'account_locked'         => 'delete',
-        'account_unlocked'       => 'create',
-        'user_registered'        => 'create',
-        'concurrent_sessions'    => 'view',
-        'new_device_detected'    => 'view',
-        'new_location_detected'  => 'view',
+        'login' => 'login',
+        'logout' => 'logout',
+        'login_failed' => 'login',
+        'password_changed' => 'update',
+        'password_reset' => 'update',
+        'profile_updated' => 'update',
+        'two_factor_enabled' => 'create',
+        'two_factor_disabled' => 'delete',
+        'account_locked' => 'delete',
+        'account_unlocked' => 'create',
+        'user_registered' => 'create',
+        'concurrent_sessions' => 'view',
+        'new_device_detected' => 'view',
+        'new_location_detected' => 'view',
     ];
 
     private const ACTIVITY_DESCRIPTION_MAP = [
-        'login'                  => 'قام المستخدم بتسجيل الدخول بنجاح',
-        'logout'                 => 'قام المستخدم بتسجيل الخروج',
-        'login_failed'           => 'محاولة تسجيل دخول فاشلة',
-        'password_changed'       => 'قام المستخدم بتغيير كلمة المرور',
-        'password_reset'         => 'قام المستخدم بإعادة تعيين كلمة المرور',
-        'profile_updated'        => 'تم تحديث معلومات الملف الشخصي للمستخدم',
-        'two_factor_enabled'     => 'تم تفعيل المصادقة الثنائية',
-        'two_factor_disabled'    => 'تم تعطيل المصادقة الثنائية',
-        'account_locked'         => 'تم قفل حساب المستخدم لأسباب أمنية',
-        'account_unlocked'       => 'تم فتح حساب المستخدم',
-        'user_registered'        => 'تم إنشاء حساب مستخدم جديد',
-        'concurrent_sessions'    => 'تم اكتشاف جلسات متعددة متزامنة',
-        'new_device_detected'    => 'تم اكتشاف تسجيل دخول من جهاز جديد',
-        'new_location_detected'  => 'تم اكتشاف تسجيل دخول من موقع جديد',
+        'login' => 'قام المستخدم بتسجيل الدخول بنجاح',
+        'logout' => 'قام المستخدم بتسجيل الخروج',
+        'login_failed' => 'محاولة تسجيل دخول فاشلة',
+        'password_changed' => 'قام المستخدم بتغيير كلمة المرور',
+        'password_reset' => 'قام المستخدم بإعادة تعيين كلمة المرور',
+        'profile_updated' => 'تم تحديث معلومات الملف الشخصي للمستخدم',
+        'two_factor_enabled' => 'تم تفعيل المصادقة الثنائية',
+        'two_factor_disabled' => 'تم تعطيل المصادقة الثنائية',
+        'account_locked' => 'تم قفل حساب المستخدم لأسباب أمنية',
+        'account_unlocked' => 'تم فتح حساب المستخدم',
+        'user_registered' => 'تم إنشاء حساب مستخدم جديد',
+        'concurrent_sessions' => 'تم اكتشاف جلسات متعددة متزامنة',
+        'new_device_detected' => 'تم اكتشاف تسجيل دخول من جهاز جديد',
+        'new_location_detected' => 'تم اكتشاف تسجيل دخول من موقع جديد',
     ];
 
     private const RESOURCE_MAP = [
-        'User'        => 'مستخدم',
+        'User' => 'مستخدم',
         'BankAccount' => 'bank_accounts',
         'Beneficiary' => 'beneficiaries',
+        'Transfer' => 'transfers',
     ];
 
     // -------------------------------------------------------------------------
@@ -99,37 +106,35 @@ class AuditLogController extends Controller
     public function index(Request $request): InertiaResponse
     {
         $request->validate([
-            'per_page'   => 'nullable|integer|min:1|max:' . self::PER_PAGE_MAX,
-            'page'       => 'nullable|integer|min:1',
-            'search'     => 'nullable|string|max:255',
-            'action'     => 'nullable|string',
-            'severity'   => 'nullable|in:all,critical,warning,info',
+            'per_page' => 'nullable|integer|min:1|max:'.self::PER_PAGE_MAX,
+            'page' => 'nullable|integer|min:1',
+            'search' => 'nullable|string|max:255',
+            'action' => 'nullable|string',
+            'severity' => 'nullable|in:all,critical,warning,info',
             'date_range' => 'nullable|in:all,today,week,month,custom',
             'start_date' => 'nullable|date',
-            'end_date'   => 'nullable|date|after_or_equal:start_date',
-            'user_id'    => 'nullable|integer|exists:users,id',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'user_id' => 'nullable|integer|exists:users,id',
         ]);
 
         $perPage = min($request->integer('per_page', self::PER_PAGE_DEFAULT), self::PER_PAGE_MAX);
-        $page    = max($request->integer('page', 1), 1);
+        $page = max($request->integer('page', 1), 1);
 
-        $cacheKey = $this->buildCacheKey('audit_logs', $page, $perPage, $request);
-        $allLogs  = Cache::remember($cacheKey, now()->addMinutes(self::CACHE_TTL_LOGS), fn () => $this->fetchMergedLogs($request));
+        $cacheKey = $this->buildCacheKey('audit_logs_page', $page, $perPage, $request);
+        $allLogs = Cache::remember($cacheKey, now()->addMinutes(self::CACHE_TTL_LOGS), fn () => $this->fetchMergedLogs($request));
 
-        $paginated  = $allLogs->forPage($page, $perPage)->values();
-        $total      = $allLogs->count();
+        $paginated = $allLogs->forPage($page, $perPage)->values();
+        $total = $allLogs->count();
         $totalPages = (int) ceil($total / $perPage);
 
         return Inertia::render('audit-logs', [
-            'logs'       => $paginated,
+            'logs' => $paginated,
             'pagination' => [
-                'current_page'   => $page,
-                'per_page'       => $perPage,
-                'total'          => $total,
-                'total_pages'    => $totalPages,
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+                'total_pages' => $totalPages,
                 'has_more_pages' => $page < $totalPages,
-                'from'           => $total ? ($page - 1) * $perPage + 1 : 0,
-                'to'             => min($page * $perPage, $total),
             ],
             'filters' => $request->only(['search', 'action', 'severity', 'date_range', 'start_date', 'end_date', 'user_id']),
         ]);
@@ -139,7 +144,7 @@ class AuditLogController extends Controller
     {
         $request->validate([
             'start_date' => 'nullable|date',
-            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
         $cacheKey = $this->buildCacheKey('audit_stats', filters: $request);
@@ -148,63 +153,61 @@ class AuditLogController extends Controller
             [$auditQuery, $activityQuery] = $this->baseQueriesWithDateRange($request);
 
             // Clone queries before adding severity constraints
-            $auditBase    = clone $auditQuery;
+            $auditBase = clone $auditQuery;
             $activityBase = clone $activityQuery;
 
-            $totalAudit    = $auditBase->count();
+            $totalAudit = $auditBase->count();
             $totalActivity = $activityBase->count();
 
             return [
-                'total_audit_logs'    => $totalAudit,
+                'total_audit_logs' => $totalAudit,
                 'total_activity_logs' => $totalActivity,
-                'total'               => $totalAudit + $totalActivity,
-                'by_severity' => [
-                    'critical' => (clone $auditQuery)->where('severity', 'critical')->count()
-                                + (clone $activityQuery)->where('severity', 'critical')->count(),
-                    'warning'  => (clone $auditQuery)->where('severity', 'warning')->count()
-                                + (clone $activityQuery)->where('severity', 'warning')->count(),
-                    'info'     => (clone $auditQuery)->where('severity', 'info')->count()
-                                + (clone $activityQuery)->where('severity', 'info')->count(),
-                ],
+                'total' => $totalAudit + $totalActivity,
+                'critical_logs' => (clone $auditQuery)->where('severity', 'critical')->count()
+                    + (clone $activityQuery)->where('severity', 'critical')->count(),
+                'warning_logs' => (clone $auditQuery)->where('severity', 'warning')->count()
+                    + (clone $activityQuery)->where('severity', 'warning')->count(),
+                'info_logs' => (clone $auditQuery)->where('severity', 'info')->count()
+                    + (clone $activityQuery)->where('severity', 'info')->count(),
                 'by_action' => $this->getActionBreakdown($request),
-                'unique_users'     => $activityBase->distinct('user_id')->count('user_id'),
-                'top_users'        => $this->getTopUsers($request),
-                'top_ips'          => $this->getTopIps($request),
-                'hourly_activity'  => $this->getHourlyActivity($request),
-                'daily_trend'      => $this->getDailyTrend($request),
-                'recent_activity'  => $activityBase->latest('created_at')->limit(10)->get(['id', 'action', 'description', 'created_at', 'user_id']),
+                'unique_users' => $activityBase->distinct('user_id')->count('user_id'),
+                'top_users' => $this->getTopUsers($request),
+                'top_ips' => $this->getTopIps($request),
+                'hourly_activity' => $this->getHourlyActivity($request),
+                'daily_trend' => $this->getDailyTrend($request),
+                'recent_activity' => $activityBase->latest('created_at')->limit(10)->get(['id', 'action', 'description', 'created_at', 'user_id']),
             ];
         });
 
         return response()->json($data);
     }
 
-    public function export(Request $request): Response|JsonResponse
+    public function export(Request $request): Response|JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
     {
         $request->validate([
-            'format'     => 'nullable|in:csv,json,xlsx',
-            'search'     => 'nullable|string|max:255',
-            'action'     => 'nullable|string',
-            'severity'   => 'nullable|in:all,critical,warning,info',
+            'format' => 'nullable|in:csv,json,xlsx',
+            'search' => 'nullable|string|max:255',
+            'action' => 'nullable|string',
+            'severity' => 'nullable|in:all,critical,warning,info',
             'date_range' => 'nullable|in:all,today,week,month,custom',
             'start_date' => 'nullable|date',
-            'end_date'   => 'nullable|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
-        $format   = $request->input('format', 'csv');
-        $logs     = $this->fetchMergedLogs($request);
-        $filename = 'audit_logs_' . now()->format('Y-m-d_His');
+        $format = $request->input('format', 'csv');
+        $logs = $this->fetchMergedLogs($request);
+        $filename = 'audit_logs_'.now()->format('Y-m-d_His');
 
         Log::info('Audit log export', [
-            'format'    => $format,
-            'count'     => $logs->count(),
-            'user_id'   => $request->user()?->id,
-            'ip'        => $request->ip(),
-            'filters'   => $request->only(['action', 'severity', 'date_range']),
+            'format' => $format,
+            'count' => $logs->count(),
+            'user_id' => $request->user()?->id,
+            'ip' => $request->ip(),
+            'filters' => $request->only(['action', 'severity', 'date_range']),
         ]);
 
         return match ($format) {
-            'json'  => $this->exportJson($logs, $filename),
+            'json' => $this->exportJson($logs, $filename),
             default => $this->exportCsv($logs, $filename),
         };
     }
@@ -212,7 +215,7 @@ class AuditLogController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $log = AuditLog::with('user')->find($id)
-            ?? UserActivityLog::with('user')->where('id', ltrim((string)$id, 'activity_'))->first();
+            ?? UserActivityLog::with('user')->where('id', ltrim((string) $id, 'activity_'))->first();
 
         abort_if(! $log, 404, 'Log entry not found.');
 
@@ -229,15 +232,15 @@ class AuditLogController extends Controller
 
         $limit = $request->integer('limit', 50);
 
-        $audit    = AuditLog::with('user')->where('user_id', $userId)->latest()->limit($limit)->get()->map(fn ($l) => $this->mapAuditLog($l));
+        $audit = AuditLog::with('user')->where('user_id', $userId)->latest()->limit($limit)->get()->map(fn ($l) => $this->mapAuditLog($l));
         $activity = UserActivityLog::with('user')->where('user_id', $userId)->latest()->limit($limit)->get()->map(fn ($l) => $this->mapActivityLog($l));
 
         $timeline = $audit->concat($activity)->sortByDesc('createdAt')->take($limit)->values();
 
         return response()->json([
-            'user_id'  => $userId,
+            'user_id' => $userId,
             'timeline' => $timeline,
-            'total'    => $timeline->count(),
+            'total' => $timeline->count(),
         ]);
     }
 
@@ -247,14 +250,14 @@ class AuditLogController extends Controller
 
     private function fetchMergedLogs(Request $request): Collection
     {
-        $auditQuery    = AuditLog::with('user');
+        $auditQuery = AuditLog::with('user');
         $activityQuery = UserActivityLog::with('user');
 
         $this->applyFilters($auditQuery, $request, 'audit');
         $this->applyFilters($activityQuery, $request, 'activity');
 
         // Use chunking for large datasets to avoid memory spikes
-        $auditLogs    = $auditQuery->latest('created_at')->get();
+        $auditLogs = $auditQuery->latest('created_at')->get();
         $activityLogs = $activityQuery->latest('created_at')->get();
 
         return $auditLogs->map(fn ($l) => $this->mapAuditLog($l))
@@ -270,44 +273,44 @@ class AuditLogController extends Controller
     private function mapAuditLog(AuditLog $log): array
     {
         return [
-            'id'          => $log->id,
-            'type'        => 'audit',
-            'action'      => $this->resolveAction($log->action),
-            'resource'    => $this->resolveResource($log->auditable_type),
-            'resourceId'  => $log->auditable_id,
-            'userId'      => $log->user?->id,
-            'userName'    => $log->user?->name ?? 'System',
-            'userEmail'   => $log->user?->email ?? 'system@local',
-            'ipAddress'   => $log->ip_address ?? 'N/A',
-            'userAgent'   => $log->user_agent,
+            'id' => $log->id,
+            'type' => 'audit',
+            'action' => $this->resolveAction($log->action),
+            'resource' => $this->resolveResource($log->auditable_type),
+            'resourceId' => $log->auditable_id,
+            'userId' => $log->user?->id,
+            'userName' => $log->user?->name ?? 'System',
+            'userEmail' => $log->user?->email ?? 'system@local',
+            'ipAddress' => $log->ip_address ?? 'N/A',
+            'userAgent' => $log->user_agent,
             'description' => $log->description ?? $this->buildAuditDescription($log->action, $log->auditable_type),
-            'severity'    => $this->resolveAuditSeverity($log->action, $log->severity ?? null),
-            'createdAt'   => $log->created_at->toIso8601String(),
-            'oldValues'   => $log->old_values,
-            'newValues'   => $log->new_values,
-            'metadata'    => $log->metadata,
+            'severity' => $this->resolveAuditSeverity($log->action, $log->severity ?? null),
+            'createdAt' => $log->created_at->toIso8601String(),
+            'oldValues' => $log->old_values,
+            'newValues' => $log->new_values,
+            'metadata' => $log->metadata,
         ];
     }
 
     private function mapActivityLog(UserActivityLog $log): array
     {
         return [
-            'id'          => 'activity_' . $log->id,
-            'type'        => 'activity',
-            'action'      => self::ACTIVITY_ACTION_MAP[$log->action] ?? 'create',
-            'resource'    => 'system',
-            'resourceId'  => null,
-            'userId'      => $log->user?->id,
-            'userName'    => $log->user?->name ?? 'System',
-            'userEmail'   => $log->user?->email ?? 'system@local',
-            'ipAddress'   => $log->ip_address ?? 'N/A',
-            'userAgent'   => $log->user_agent,
+            'id' => 'activity_'.$log->id,
+            'type' => 'activity',
+            'action' => self::ACTIVITY_ACTION_MAP[$log->action] ?? 'create',
+            'resource' => 'system',
+            'resourceId' => null,
+            'userId' => $log->user?->id,
+            'userName' => $log->user?->name ?? 'System',
+            'userEmail' => $log->user?->email ?? 'system@local',
+            'ipAddress' => $log->ip_address ?? 'N/A',
+            'userAgent' => $log->user_agent,
             'description' => $log->description ?? (self::ACTIVITY_DESCRIPTION_MAP[$log->action] ?? $log->action),
-            'severity'    => self::ACTIVITY_SEVERITY_MAP[$log->action] ?? 'info',
-            'createdAt'   => $log->created_at->toIso8601String(),
-            'oldValues'   => $log->old_values ?? null,
-            'newValues'   => $log->new_values ?? null,
-            'metadata'    => $log->metadata ?? null,
+            'severity' => self::ACTIVITY_SEVERITY_MAP[$log->action] ?? 'info',
+            'createdAt' => $log->created_at->toIso8601String(),
+            'oldValues' => $log->old_values ?? null,
+            'newValues' => $log->new_values ?? null,
+            'metadata' => $log->metadata ?? null,
         ];
     }
 
@@ -349,11 +352,15 @@ class AuditLogController extends Controller
         }
 
         foreach (self::SEVERITY_CRITICAL_KEYWORDS as $kw) {
-            if (str_contains($action, $kw)) return 'critical';
+            if (str_contains($action, $kw)) {
+                return 'critical';
+            }
         }
 
         foreach (self::SEVERITY_WARNING_KEYWORDS as $kw) {
-            if (str_contains($action, $kw)) return 'warning';
+            if (str_contains($action, $kw)) {
+                return 'warning';
+            }
         }
 
         return 'info';
@@ -367,9 +374,9 @@ class AuditLogController extends Controller
             str_contains($action, 'create') => $resource ? "تم إنشاء {$resource}" : 'تم الإنشاء',
             str_contains($action, 'update') => $resource ? "تم تحديث {$resource}" : 'تم التحديث',
             str_contains($action, 'delete') => $resource ? "تم حذف {$resource}" : 'تم الحذف',
-            str_contains($action, 'login')  => 'قام المستخدم بتسجيل الدخول بنجاح',
+            str_contains($action, 'login') => 'قام المستخدم بتسجيل الدخول بنجاح',
             str_contains($action, 'logout') => 'قام المستخدم بتسجيل الخروج',
-            default                          => $action,
+            default => $action,
         };
     }
 
@@ -422,11 +429,11 @@ class AuditLogController extends Controller
         $now = Carbon::now();
 
         match ($range) {
-            'today'  => $query->whereDate('created_at', $now->toDateString()),
-            'week'   => $query->where('created_at', '>=', $now->copy()->startOfWeek()),
-            'month'  => $query->where('created_at', '>=', $now->copy()->startOfMonth()),
+            'today' => $query->whereDate('created_at', $now->toDateString()),
+            'week' => $query->where('created_at', '>=', $now->copy()->startOfWeek()),
+            'month' => $query->where('created_at', '>=', $now->copy()->startOfMonth()),
             'custom' => $this->applyCustomDateFilter($query, $request),
-            default  => null,
+            default => null,
         };
     }
 
@@ -446,7 +453,7 @@ class AuditLogController extends Controller
 
     private function baseQueriesWithDateRange(Request $request): array
     {
-        $auditQuery    = AuditLog::query();
+        $auditQuery = AuditLog::query();
         $activityQuery = UserActivityLog::query();
 
         if ($request->filled('start_date')) {
@@ -476,7 +483,7 @@ class AuditLogController extends Controller
             ->get()
             ->map(fn ($row) => [
                 'action' => $this->resolveAction($row->action),
-                'total'  => $row->total,
+                'total' => $row->total,
             ])
             ->toArray();
     }
@@ -495,9 +502,9 @@ class AuditLogController extends Controller
             ->get()
             ->map(fn ($row) => [
                 'user_id' => $row->user_id,
-                'name'    => $row->user?->name ?? 'مجهول',
-                'email'   => $row->user?->email,
-                'total'   => $row->total,
+                'name' => $row->user?->name ?? 'مجهول',
+                'email' => $row->user?->email,
+                'total' => $row->total,
             ])
             ->toArray();
     }
@@ -515,7 +522,7 @@ class AuditLogController extends Controller
             ->get()
             ->map(fn ($row) => [
                 'ip_address' => $row->ip_address,
-                'total'      => $row->total,
+                'total' => $row->total,
             ])
             ->toArray();
     }
@@ -524,21 +531,28 @@ class AuditLogController extends Controller
     {
         [$auditQuery, $activityQuery] = $this->baseQueriesWithDateRange($request);
 
+        $driver = DB::connection()->getDriverName();
+        $hourExpr = match ($driver) {
+            'sqlite' => "CAST(strftime('%H', created_at) AS INTEGER)",
+            'pgsql' => 'EXTRACT(HOUR FROM created_at)',
+            default => 'HOUR(created_at)',
+        };
+
         $audit = $auditQuery
-            ->select(DB::raw('HOUR(created_at) as hour'), DB::raw('count(*) as total'))
+            ->select(DB::raw("{$hourExpr} as hour"), DB::raw('count(*) as total'))
             ->groupBy('hour')
             ->pluck('total', 'hour');
 
         $activity = $activityQuery
-            ->select(DB::raw('HOUR(created_at) as hour'), DB::raw('count(*) as total'))
+            ->select(DB::raw("{$hourExpr} as hour"), DB::raw('count(*) as total'))
             ->groupBy('hour')
             ->pluck('total', 'hour');
 
         return collect(range(0, 23))->map(fn ($h) => [
-            'hour'     => $h,
-            'audit'    => $audit->get($h, 0),
+            'hour' => $h,
+            'audit' => $audit->get($h, 0),
             'activity' => $activity->get($h, 0),
-            'total'    => $audit->get($h, 0) + $activity->get($h, 0),
+            'total' => $audit->get($h, 0) + $activity->get($h, 0),
         ])->toArray();
     }
 
@@ -560,11 +574,12 @@ class AuditLogController extends Controller
 
         return collect(range(0, $days - 1))->map(function ($offset) use ($audit, $activity) {
             $date = Carbon::now()->subDays($offset)->toDateString();
+
             return [
-                'date'     => $date,
-                'audit'    => $audit->get($date, 0),
+                'date' => $date,
+                'audit' => $audit->get($date, 0),
                 'activity' => $activity->get($date, 0),
-                'total'    => $audit->get($date, 0) + $activity->get($date, 0),
+                'total' => $audit->get($date, 0) + $activity->get($date, 0),
             ];
         })->sortBy('date')->values()->toArray();
     }
@@ -573,10 +588,10 @@ class AuditLogController extends Controller
     // Export helpers
     // -------------------------------------------------------------------------
 
-    private function exportCsv(Collection $logs, string $filename): Response
+    private function exportCsv(Collection $logs, string $filename): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}.csv\"",
             'X-Content-Type-Options' => 'nosniff',
         ];
@@ -616,7 +631,7 @@ class AuditLogController extends Controller
         return response()->json([
             'data' => $logs->values(),
             'meta' => [
-                'total'       => $logs->count(),
+                'total' => $logs->count(),
                 'exported_at' => now()->toIso8601String(),
                 'exported_by' => request()->user()?->email ?? 'system',
             ],

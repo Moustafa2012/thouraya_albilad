@@ -2,10 +2,8 @@
 
 namespace App\Observers;
 
-use App\Models\AuditLog;
 use App\Models\BankAccount;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Request;
+use App\Services\Logging\AuditLogger;
 
 class BankAccountObserver
 {
@@ -70,15 +68,12 @@ class BankAccountObserver
      */
     protected function log($model, string $action, ?array $old = null, ?array $new = null): void
     {
-        AuditLog::create([
-            'user_id' => Auth::id(), // Will be null if run from CLI/Job without user, handling that is good practice
-            'action' => $action,
-            'auditable_type' => get_class($model),
-            'auditable_id' => $model->id,
-            'old_values' => $old,
-            'new_values' => $new,
-            'ip_address' => Request::ip(),
-            'user_agent' => Request::userAgent(),
-        ]);
+        app(AuditLogger::class)->log(
+            model: $model,
+            action: $action,
+            oldValues: $old,
+            newValues: $new,
+            description: $action,
+        );
     }
 }

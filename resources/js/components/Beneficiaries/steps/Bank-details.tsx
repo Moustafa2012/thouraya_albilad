@@ -57,6 +57,7 @@ function Field({ label, labelAr, error, hint, required, isRtl, children }: Field
 
 const COUNTRY_OPTIONS: { value: CountryCode; en: string; ar: string; flag: string }[] = [
   { value: 'SA', en: 'Saudi Arabia', ar: 'المملكة العربية السعودية', flag: '🇸🇦' },
+  { value: 'TR', en: 'Turkey', ar: 'تركيا', flag: '🇹🇷' },
   { value: 'AE', en: 'United Arab Emirates', ar: 'الإمارات العربية المتحدة', flag: '🇦🇪' },
   { value: 'US', en: 'United States', ar: 'الولايات المتحدة الأمريكية', flag: '🇺🇸' },
   { value: 'GB', en: 'United Kingdom', ar: 'المملكة المتحدة', flag: '🇬🇧' },

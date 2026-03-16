@@ -24,4 +24,9 @@ class JournalEntry extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function bankAccount(): BelongsTo
+    {
+        return $this->belongsTo(BankAccount::class);
+    }
 }

@@ -17,6 +17,8 @@ class JournalEntryResource extends JsonResource
     {
         return [
             'id' => (string) $this->id,
+            'bankAccountId' => $this->bank_account_id ? (string) $this->bank_account_id : null,
+            'direction' => $this->direction,
             'date' => $this->date?->toDateString(),
             'description' => $this->description,
             'reference' => $this->reference,

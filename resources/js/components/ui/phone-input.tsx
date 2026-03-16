@@ -666,7 +666,6 @@ export function PhoneInput({
     // Try international-prefix detection (paste of full number like +963991...)
     const detected = detectDialCode(raw)
     if (detected) {
-      const capped = detected.nationalDigits.slice(0, capacity)
       const detectedCode = detected.country.countryCallingCodes[0] ?? ""
       const detectedMask = MASKS[detectedCode] ?? null
       const detectedCapacity = detectedMask ? maskCapacity(detectedMask) : 20

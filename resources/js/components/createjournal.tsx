@@ -1,7 +1,6 @@
 'use client';
 
-import type { RequestPayload } from '@inertiajs/core';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, CalendarDays, CheckCircle2, FileText, Save, Tag, X } from 'lucide-react';
 import { useId, useMemo, useState } from 'react';
@@ -93,9 +92,9 @@ export default function CreateJournal() {
     { title: t('Add entry', 'إضافة قيد'), href: '/journals/create' },
   ];
 
-  const [form, setForm] = useState<JournalFormData>({ ...INITIAL_FORM });
-  const [errors, setErrors] = useState<JournalErrors>({});
-  const [submitting, setSubmitting] = useState(false);
+  const form = useForm<JournalFormData>({ ...INITIAL_FORM });
+  const errors = form.errors as JournalErrors;
+  const submitting = form.processing;
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(() => {
     if (flash?.success) return { type: 'success', message: flash.success };
     if (flash?.error) return { type: 'error', message: flash.error };
@@ -103,60 +102,34 @@ export default function CreateJournal() {
   });
 
   const amountPreview = useMemo(() => {
-    const value = Number(form.amount);
+    const value = Number(form.data.amount);
     if (!Number.isFinite(value) || value <= 0) return '—';
     try {
       return new Intl.NumberFormat(isRtl ? 'ar' : 'en-US', {
         style: 'currency',
-        currency: form.currency,
+        currency: form.data.currency,
         maximumFractionDigits: 2,
       }).format(value);
     } catch {
-      return `${value.toFixed(2)} ${form.currency}`;
+      return `${value.toFixed(2)} ${form.data.currency}`;
     }
-  }, [form.amount, form.currency, isRtl]);
+  }, [form.data.amount, form.data.currency, isRtl]);
 
   function set<K extends keyof JournalFormData>(key: K, value: JournalFormData[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-    setErrors((prev) => {
-      if (!prev[key]) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
+    form.setData(key, value as any);
+    form.clearErrors(key);
   }
 
   function submit() {
-    const newErrors = validate(form, t);
+    const newErrors = validate(form.data, t);
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      form.setError(newErrors);
       return;
     }
 
-    setSubmitting(true);
-
-    const payload: RequestPayload = {
-      date: form.date,
-      description: form.description,
-      reference: form.reference || null,
-      type: form.type,
-      status: form.status,
-      amount: form.amount,
-      currency: form.currency,
-      notes: form.notes || null,
-    };
-
-    router.post('/journals', payload, {
-      onError: (serverErrors) => {
-        const mapped: JournalErrors = {};
-        for (const [key, value] of Object.entries(serverErrors)) {
-          mapped[key as keyof JournalFormData] = Array.isArray(value) ? value[0] : String(value);
-        }
-        setErrors(mapped);
+    form.post('/journals', {
+      onError: () => {
         setNotification({ type: 'error', message: t('Please fix the highlighted fields.', 'يرجى تصحيح الحقول المطلوبة.') });
-      },
-      onFinish: () => {
-        setSubmitting(false);
       },
     });
   }
@@ -244,7 +217,7 @@ export default function CreateJournal() {
                       <Input
                         id={dateId}
                         type="date"
-                        value={form.date}
+                        value={form.data.date}
                         onChange={(e) => set('date', e.target.value)}
                         className={cn('h-10 bg-background/60', errors.date && 'border-destructive')}
                       />
@@ -256,7 +229,7 @@ export default function CreateJournal() {
                         <Tag className="size-3.5" aria-hidden="true" />
                         {t('Type', 'النوع')}
                       </Label>
-                      <Select value={form.type} onValueChange={(v) => set('type', v as JournalFormData['type'])}>
+                      <Select value={form.data.type} onValueChange={(v) => set('type', v as JournalFormData['type'])}>
                         <SelectTrigger className="h-10 bg-background/60">
                           <SelectValue />
                         </SelectTrigger>
@@ -278,7 +251,7 @@ export default function CreateJournal() {
                     </Label>
                     <Input
                       id={descriptionId}
-                      value={form.description}
+                      value={form.data.description}
                       onChange={(e) => set('description', e.target.value)}
                       placeholder={t('e.g. Office supplies', 'مثال: مستلزمات مكتبية')}
                       className={cn('h-10 bg-background/60', errors.description && 'border-destructive')}
@@ -293,7 +266,7 @@ export default function CreateJournal() {
                       </Label>
                       <Input
                         id={referenceId}
-                        value={form.reference}
+                        value={form.data.reference}
                         onChange={(e) => set('reference', e.target.value)}
                         placeholder={t('e.g. INV-2026-001', 'مثال: INV-2026-001')}
                         className="h-10 bg-background/60"
@@ -304,7 +277,7 @@ export default function CreateJournal() {
                       <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                         {t('Status', 'الحالة')}
                       </Label>
-                      <Select value={form.status} onValueChange={(v) => set('status', v as JournalFormData['status'])}>
+                      <Select value={form.data.status} onValueChange={(v) => set('status', v as JournalFormData['status'])}>
                         <SelectTrigger className="h-10 bg-background/60">
                           <SelectValue />
                         </SelectTrigger>
@@ -330,7 +303,7 @@ export default function CreateJournal() {
                         inputMode="decimal"
                         min="0.01"
                         step="0.01"
-                        value={form.amount}
+                        value={form.data.amount}
                         onChange={(e) => set('amount', e.target.value)}
                         placeholder={t('0.00', '0.00')}
                         className={cn('h-10 bg-background/60', errors.amount && 'border-destructive')}
@@ -342,7 +315,7 @@ export default function CreateJournal() {
                       <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                         {t('Currency', 'العملة')}
                       </Label>
-                      <Select value={form.currency} onValueChange={(v) => set('currency', v as JournalFormData['currency'])}>
+                      <Select value={form.data.currency} onValueChange={(v) => set('currency', v as JournalFormData['currency'])}>
                         <SelectTrigger className="h-10 bg-background/60">
                           <SelectValue />
                         </SelectTrigger>
@@ -363,7 +336,7 @@ export default function CreateJournal() {
                     </Label>
                     <Textarea
                       id={notesId}
-                      value={form.notes}
+                      value={form.data.notes}
                       onChange={(e) => set('notes', e.target.value)}
                       placeholder={t('Add any additional context...', 'أضف أي سياق إضافي...')}
                       className="bg-background/60"
@@ -401,9 +374,9 @@ export default function CreateJournal() {
 
                 <div className="mt-4 space-y-3">
                   {[
-                    { label: t('Type', 'النوع'), value: form.type },
-                    { label: t('Status', 'الحالة'), value: form.status },
-                    { label: t('Currency', 'العملة'), value: form.currency },
+                    { label: t('Type', 'النوع'), value: form.data.type },
+                    { label: t('Status', 'الحالة'), value: form.data.status },
+                    { label: t('Currency', 'العملة'), value: form.data.currency },
                   ].map(({ label, value }) => (
                     <div key={label} className="rounded-xl border border-border bg-muted/20 px-3 py-3">
                       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>

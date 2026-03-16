@@ -32,6 +32,7 @@ export interface AuditLogFilters {
   resource: AuditLogResource | 'all';
   severity: AuditLogSeverity | 'all';
   dateRange: 'all' | 'today' | 'week' | 'month' | 'custom';
+  userId?: number;
   startDate?: Date;
   endDate?: Date;
 }

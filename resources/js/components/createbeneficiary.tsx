@@ -1,4 +1,4 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, BadgeCheck, Save, Users } from 'lucide-react';
 import * as Icons from 'lucide-react';
@@ -75,38 +75,32 @@ export default function CreateBeneficiary() {
 
   const [stepIndex, setStepIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const [errors, setErrors] = useState<BeneficiaryValidationErrors>({});
-  const [formData, setFormData] = useState<BeneficiaryFormData>(() =>
-    beneficiary ? beneficiaryToFormData(beneficiary) : INITIAL_BENEFICIARY_FORM_DATA,
-  );
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const form = useForm<BeneficiaryFormData>(beneficiary ? beneficiaryToFormData(beneficiary) : INITIAL_BENEFICIARY_FORM_DATA);
+  const formData = form.data;
+  const errors = form.errors as BeneficiaryValidationErrors;
+  const isSubmitting = form.processing;
 
   const currentStep = BENEFICIARY_STEPS[stepIndex];
 
   useEffect(() => {
     if (beneficiary) {
-      setFormData(beneficiaryToFormData(beneficiary));
+      form.setData(beneficiaryToFormData(beneficiary));
+      form.clearErrors();
     }
   }, [beneficiary?.id]);
 
   function set(field: keyof BeneficiaryFormData, value: string | boolean) {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field as keyof BeneficiaryValidationErrors]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field as keyof BeneficiaryValidationErrors];
-        return next;
-      });
-    }
+    form.setData(field, value as any);
+    form.clearErrors(field);
   }
 
   function attemptNext() {
     const newErrors = validateStep(currentStep.key, formData, t);
     if (hasErrors(newErrors)) {
-      setErrors(newErrors);
+      form.setError(newErrors);
       return;
     }
-    setErrors({});
+    form.clearErrors();
     setCompletedSteps((prev) => new Set(prev).add(stepIndex));
     if (stepIndex < BENEFICIARY_STEPS.length - 1) setStepIndex((i) => i + 1);
   }
@@ -119,14 +113,13 @@ export default function CreateBeneficiary() {
     e.preventDefault();
     const newErrors = validateStep(currentStep.key, formData, t);
     if (hasErrors(newErrors)) {
-      setErrors(newErrors);
+      form.setError(newErrors);
       return;
     }
-    setIsSubmitting(true);
     if (isEdit && beneficiary) {
-      router.put(`/beneficiaries/${beneficiary.id}`, formData as any, { onFinish: () => setIsSubmitting(false) });
+      form.put(`/beneficiaries/${beneficiary.id}`);
     } else {
-      router.post('/beneficiaries', formData as any, { onFinish: () => setIsSubmitting(false) });
+      form.post('/beneficiaries');
     }
   }
 

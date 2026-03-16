@@ -4,10 +4,12 @@ namespace App\Providers;
 
 use App\Models\BankAccount;
 use App\Models\Beneficiary;
+use App\Models\JournalEntry;
 use App\Models\User;
 use App\Observers\BankAccountDetailObserver;
 use App\Observers\BankAccountObserver;
 use App\Observers\BeneficiaryObserver;
+use App\Observers\JournalEntryObserver;
 use App\Observers\UserObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -36,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\PersonalBankAccount::observe(BankAccountDetailObserver::class);
         \App\Models\BusinessBankAccount::observe(BankAccountDetailObserver::class);
         Beneficiary::observe(BeneficiaryObserver::class);
+        JournalEntry::observe(JournalEntryObserver::class);
 
         $this->configureDefaults();
         $this->configurePermissions();

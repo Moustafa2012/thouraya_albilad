@@ -1,9 +1,13 @@
 <?php
 
-use App\Services\Logging\ActivityLogger;
-use App\Models\UserActivityLog;
 use App\Models\User;
+use App\Models\UserActivityLog;
+use App\Services\Logging\ActivityLogger;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Tests\TestCase;
+
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function () {
     Auth::shouldReceive('id')->andReturn(1);
@@ -11,7 +15,7 @@ beforeEach(function () {
 
 test('logs user login with metadata', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logLogin($user, true);
 
@@ -25,7 +29,7 @@ test('logs user login with metadata', function () {
 
 test('logs failed login with warning severity', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logLogin($user, false, 'Invalid credentials');
 
@@ -37,7 +41,7 @@ test('logs failed login with warning severity', function () {
 
 test('logs user logout', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logLogout($user);
 
@@ -48,7 +52,7 @@ test('logs user logout', function () {
 
 test('logs password change', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logPasswordChange($user);
 
@@ -59,7 +63,7 @@ test('logs password change', function () {
 
 test('logs password reset', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logPasswordReset($user);
 
@@ -70,7 +74,7 @@ test('logs password reset', function () {
 
 test('logs profile update with changes', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $oldValues = ['name' => 'Old Name'];
     $newValues = ['name' => 'New Name'];
@@ -85,7 +89,7 @@ test('logs profile update with changes', function () {
 
 test('logs two factor enabled', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logTwoFactorEnabled($user);
 
@@ -96,7 +100,7 @@ test('logs two factor enabled', function () {
 
 test('logs two factor disabled with warning', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logTwoFactorDisabled($user);
 
@@ -107,7 +111,7 @@ test('logs two factor disabled with warning', function () {
 
 test('logs account locked with critical severity', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logAccountLocked($user, 'Too many failed attempts');
 
@@ -119,7 +123,7 @@ test('logs account locked with critical severity', function () {
 
 test('logs suspicious activity with warning', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logSuspiciousActivity($user, 'concurrent_sessions', 'Multiple sessions detected');
 
@@ -131,7 +135,7 @@ test('logs suspicious activity with warning', function () {
 
 test('logs device change with warning', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logDeviceChange($user, 'Chrome on Windows');
 
@@ -143,7 +147,7 @@ test('logs device change with warning', function () {
 
 test('logs location change with warning', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logLocationChange($user, 'New York, USA');
 
@@ -155,7 +159,7 @@ test('logs location change with warning', function () {
 
 test('includes comprehensive metadata', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log = $logger->logLogin($user, true);
 
@@ -168,7 +172,7 @@ test('includes comprehensive metadata', function () {
 
 test('generates unique request IDs', function () {
     $user = User::factory()->create();
-    $logger = new ActivityLogger();
+    $logger = new ActivityLogger;
 
     $log1 = $logger->logLogin($user, true);
     $log2 = $logger->logLogin($user, true);

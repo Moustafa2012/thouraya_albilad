@@ -15,6 +15,17 @@ class BankAccountService
         return DB::transaction(function () use ($request) {
             $validated = $request->validated();
 
+            $accountCategory = $validated['account_category'] ?? 'business';
+            $accountType = $validated['account_type'] ?? ($accountCategory === 'personal' ? 'current' : 'corporate');
+            $isActive = array_key_exists('is_active', $validated) ? (bool) $validated['is_active'] : true;
+            $defaultHolderName = $request->user()?->name ?: config('app.name');
+
+            $validated['account_category'] = $accountCategory;
+            $validated['account_type'] = $accountType;
+            $validated['holder_name_en'] = $validated['holder_name_en'] ?? $defaultHolderName;
+            $validated['holder_name_ar'] = $validated['holder_name_ar'] ?? $defaultHolderName;
+            $validated['status'] = $validated['status'] ?? ($isActive ? 'active' : 'inactive');
+
             if ($request->boolean('is_default')) {
                 BankAccount::where('is_default', true)->update(['is_default' => false]);
             }
@@ -79,7 +90,7 @@ class BankAccountService
      */
     private function bankAccountAttributes(array $validated): array
     {
-        return Arr::only($validated, [
+        $attributes = Arr::only($validated, [
             'account_name',
             'holder_name_ar',
             'holder_name_en',
@@ -107,5 +118,13 @@ class BankAccountService
             'notes',
             'metadata',
         ]);
+
+        foreach (['holder_name_ar', 'holder_name_en', 'account_type', 'account_category'] as $requiredKey) {
+            if (array_key_exists($requiredKey, $attributes) && $attributes[$requiredKey] === null) {
+                unset($attributes[$requiredKey]);
+            }
+        }
+
+        return $attributes;
     }
 }

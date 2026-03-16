@@ -73,10 +73,9 @@ export function StepBasicInfo({ formData, errors, isRtl, t, set }: CommonBenefic
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field
-          label="Full Name (Arabic)"
-          labelAr="الاسم الكامل (عربي)"
+          label="Name (Optional Arabic)"
+          labelAr="الاسم (اختياري بالعربية)"
           error={errors.nameAr}
-          required
           isRtl={isRtl}
         >
           <div className="relative">
@@ -84,16 +83,16 @@ export function StepBasicInfo({ formData, errors, isRtl, t, set }: CommonBenefic
             <Input
               value={formData.nameAr}
               onChange={(e) => set('nameAr', e.target.value)}
-              placeholder={t('e.g. محمد عبدالله', 'مثال: محمد عبدالله')}
-              dir="rtl"
+              placeholder={t('Optional', 'اختياري')}
+              dir={isRtl ? 'rtl' : 'ltr'}
               className={cn(inputClass, isRtl ? 'pr-9' : 'pl-9', errors.nameAr && 'border-destructive')}
             />
           </div>
         </Field>
 
         <Field
-          label="Full Name (English)"
-          labelAr="الاسم الكامل (إنجليزي)"
+          label="Beneficiary Name"
+          labelAr="اسم المستفيد"
           error={errors.nameEn}
           required
           isRtl={isRtl}
@@ -102,8 +101,14 @@ export function StepBasicInfo({ formData, errors, isRtl, t, set }: CommonBenefic
             <UserCheck className={cn('absolute top-1/2 size-4 -translate-y-1/2 text-muted-foreground', isRtl ? 'right-3' : 'left-3')} />
             <Input
               value={formData.nameEn}
-              onChange={(e) => set('nameEn', e.target.value)}
-              placeholder="e.g. Mohammed Abdullah"
+              onChange={(e) => {
+                const next = e.target.value;
+                set('nameEn', next);
+                if (!formData.nameAr.trim()) {
+                  set('nameAr', next);
+                }
+              }}
+              placeholder={t('e.g. Yıldız Makina Sanayi A.Ş.', 'مثال: Yıldız Makina Sanayi A.Ş.')}
               dir="ltr"
               className={cn(inputClass, isRtl ? 'pr-9' : 'pl-9', errors.nameEn && 'border-destructive')}
             />

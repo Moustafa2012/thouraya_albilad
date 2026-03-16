@@ -17,6 +17,7 @@ class TransferResource extends JsonResource
     {
         return [
             'id' => (string) $this->id,
+            'transferNumber' => $this->transfer_number,
             'bankAccountId' => (string) $this->bank_account_id,
             'beneficiaryId' => (string) $this->beneficiary_id,
             'amount' => (float) $this->amount,
@@ -24,8 +25,12 @@ class TransferResource extends JsonResource
             'transferDate' => $this->transfer_date?->toDateString(),
             'referenceNumber' => $this->reference_number,
             'notes' => $this->notes,
+            'authorizedBy' => $this->authorized_by,
             'bankEmail' => $this->bank_email,
             'status' => $this->status,
+            'sentAt' => $this->sent_at?->toIso8601String(),
+            'sentTo' => $this->sent_to,
+            'sentBy' => $this->sent_by ? (string) $this->sent_by : null,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
             'bankAccount' => $this->whenLoaded('bankAccount', function () {

@@ -47,8 +47,6 @@ export const StarsPattern: React.FC<GeometricPatternProps> = ({
   opacity = 0.03,
   className = '',
 }) => {
-  const patternId = 'islamic-geometric-pattern';
-
   return (
     <div
       className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}
@@ -64,6 +62,7 @@ export const StarsPattern: React.FC<GeometricPatternProps> = ({
         width="100%"
         height="100%"
         preserveAspectRatio="xMidYMid slice"
+        style={{ color }}
         aria-hidden="true"
       >
         {/* ... rest of the SVG content remains the same ... */}

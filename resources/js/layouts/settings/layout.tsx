@@ -141,7 +141,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
                 {/* ── Page content ─────────────────────────── */}
                 <div className="min-w-0 flex-1">
-                    <section className="max-w-xl space-y-10">
+                    <section className="max-w-3xl space-y-10">
                         {children}
                     </section>
                 </div>

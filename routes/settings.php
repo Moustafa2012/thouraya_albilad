@@ -8,14 +8,14 @@ use App\Http\Controllers\Settings\UserManagementController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:user'])->group(function () {
     Route::redirect('settings', '/settings/profile');
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('settings/password', [PasswordController::class, 'edit'])->name('user-password.edit');
@@ -32,16 +32,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('two-factor.show');
 
     Route::get('settings/users', [UserManagementController::class, 'index'])
-        ->middleware('can:manage:users')
+        ->middleware(['role:admin', 'permission:manage:users', 'can:manage:users'])
         ->name('settings.users');
     Route::patch('settings/users/{managedUser}', [UserManagementController::class, 'update'])
-        ->middleware('can:manage:users')
+        ->middleware(['role:admin', 'permission:manage:users', 'can:manage:users'])
         ->name('settings.users.update');
 
     Route::get('settings/smtp', [SmtpSettingsController::class, 'edit'])
-        ->middleware('can:settings:advanced')
+        ->middleware(['role:admin', 'permission:settings:advanced', 'can:settings:advanced'])
         ->name('settings.smtp.edit');
     Route::put('settings/smtp', [SmtpSettingsController::class, 'update'])
-        ->middleware('can:settings:advanced')
+        ->middleware(['role:admin', 'permission:settings:advanced', 'can:settings:advanced'])
         ->name('settings.smtp.update');
 });

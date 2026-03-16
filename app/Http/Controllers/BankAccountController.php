@@ -8,6 +8,7 @@ use App\Http\Resources\BankAccountResource;
 use App\Models\BankAccount;
 use App\Services\BankAccountService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,14 +20,16 @@ class BankAccountController extends Controller
         private BankAccountService $bankAccountService
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $accounts = BankAccount::with(['personal', 'business'])
+        $accounts = BankAccount::query()
+            ->where('user_id', $request->user()->id)
+            ->with(['personal', 'business'])
             ->latest()
             ->get();
 
         return Inertia::render('bank-accounts', [
-            'accounts' => BankAccountResource::collection($accounts)->toArray(request()),
+            'accounts' => BankAccountResource::collection($accounts)->toArray($request),
         ]);
     }
 

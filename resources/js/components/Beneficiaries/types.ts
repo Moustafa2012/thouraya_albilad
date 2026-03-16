@@ -4,7 +4,7 @@ export type BeneficiaryCategory =
   | 'suppliers' | 'employees' | 'partners' | 'contractors' | 'other';
 
 export type CountryCode =
-  | 'SA' | 'US' | 'IN' | 'GB' | 'AU' | 'CA'
+  | 'SA' | 'US' | 'IN' | 'GB' | 'AU' | 'CA' | 'TR'
   | 'AE' | 'KW' | 'QA' | 'BH' | 'OM' | 'JO' | 'EG';
 
 export type CurrencyCode =
@@ -39,7 +39,7 @@ export interface BeneficiaryFormData {
 }
 
 export const INITIAL_BENEFICIARY_FORM_DATA: BeneficiaryFormData = {
-  accountType: 'individual',
+  accountType: 'business',
   nameAr: '',
   nameEn: '',
   nationalId: '',
@@ -48,19 +48,19 @@ export const INITIAL_BENEFICIARY_FORM_DATA: BeneficiaryFormData = {
   email: '',
   phone: '',
   address: '',
-  country: 'SA',
+  country: 'TR',
   bankName: '',
   accountNumber: '',
   iban: '',
   swiftCode: '',
-  currency: 'SAR',
+  currency: 'USD',
   abaNumber: '',
   routingNumber: '',
   ifscCode: '',
   sortCode: '',
   bsbNumber: '',
   transitNumber: '',
-  category: 'other',
+  category: 'suppliers',
   notes: '',
 };
 

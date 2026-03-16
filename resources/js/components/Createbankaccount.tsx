@@ -1,7 +1,6 @@
 'use client';
 import type { RequestPayload } from '@inertiajs/core';
-import { router, usePage } from '@inertiajs/react';
-import { Head } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertCircle,
@@ -124,6 +123,10 @@ function accountToFormData(account: BankAccount): BankAccountFormData {
     expectedTransactionValue: (account.metadata?.expectedTransactionValue as string) ?? '',
     correspondentBank: (account.metadata?.correspondentBank as string) ?? '',
     correspondentSwift: (account.metadata?.correspondentSwift as string) ?? '',
+    openingBalance:
+      account.balance != null && !Number.isNaN(Number(account.balance))
+        ? String(account.balance)
+        : '0',
     isDefault: account.isDefault ?? false,
     isActive: account.isActive ?? true,
     notes: account.notes ?? '',
@@ -164,6 +167,7 @@ function formDataToPayload(formData: BankAccountFormData): RequestPayload {
   const isBusiness = formData.accountCategory === 'business';
   const isPersonal = formData.accountCategory === 'personal';
   const inferredHolderName = (isBusiness ? formData.businessName : '') || formData.holderNameEn;
+  const openingBalance = Number((formData.openingBalance ?? '0').toString().replace(/,/g, '').trim());
 
   return {
     account_name:
@@ -190,6 +194,8 @@ function formDataToPayload(formData: BankAccountFormData): RequestPayload {
     branch_code: formData.branchCode || null,
     routing_number: formData.routingNumber || null,
     sort_code: formData.sortCode || null,
+    balance: Number.isFinite(openingBalance) ? openingBalance : 0,
+    status: formData.isActive ? 'active' : 'inactive',
     account_type: formData.accountType,
     account_category: formData.accountCategory,
     is_default: formData.isDefault,
@@ -425,7 +431,8 @@ export default function CreateBankAccount() {
   const [currentStep, setCurrentStep] = useState(0);
   const [stepErrors, setStepErrors] = useState<ValidationErrors>({});
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([0]));
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submission = useForm({});
+  const isSubmitting = submission.processing;
   const [notification, setNotification] = useState<NotificationData | null>(null);
 
   // Phase 1: refs for side-effect cleanup — no extra renders
@@ -539,7 +546,6 @@ export default function CreateBankAccount() {
   //          → navigate to first failing step → POST or PUT → onFinish clears lock.
 
   function handleSubmit() {
-    // Phase 1: double-submit guard using ref (avoids extra render from state)
     if (isSubmittingRef.current) return;
 
     // Validate final step locally
@@ -567,11 +573,8 @@ export default function CreateBankAccount() {
       return;
     }
 
-    // Lock submission
-    isSubmittingRef.current = true;
-    setIsSubmitting(true);
-
     const payload = formDataToPayload(formData);
+    isSubmittingRef.current = true;
 
     const handlers = {
       onSuccess: () => {
@@ -602,10 +605,16 @@ export default function CreateBankAccount() {
         // Phase 3: map snake_case server errors → camelCase form fields
         const mapped: ValidationErrors = {};
         for (const [key, message] of Object.entries(errors)) {
-          const camelKey = key.replace(/_([a-z])/g, (_, c: string) =>
-            c.toUpperCase(),
-          ) as keyof BankAccountFormData;
-          mapped[camelKey] = message;
+          const overrides: Partial<Record<string, keyof BankAccountFormData>> = {
+            account_name: 'accountNickname',
+            account_holder_name: 'holderNameEn',
+          };
+
+          const targetKey =
+            overrides[key] ??
+            (key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase()) as keyof BankAccountFormData);
+
+          mapped[targetKey] = message;
         }
 
         // Navigate to the first step that has a server error
@@ -622,19 +631,17 @@ export default function CreateBankAccount() {
         }
         setStepErrors(mapped);
       },
-      // Phase 1 fix: always clear submission state in onFinish — fires even if
-      // success/error callback throws, preventing permanently-stuck disabled button.
       onFinish: () => {
         isSubmittingRef.current = false;
-        setIsSubmitting(false);
       },
     };
 
     // Phase 3: correct API verb — PUT for edit, POST for create
+    submission.setData(payload as any);
     if (isEdit && account) {
-      router.put(`/bank-accounts/${account.id}`, payload, handlers);
+      submission.put(`/bank-accounts/${account.id}`, handlers);
     } else {
-      router.post('/bank-accounts', payload, handlers);
+      submission.post('/bank-accounts', handlers);
     }
   }
 

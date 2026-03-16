@@ -149,6 +149,22 @@ class User extends Authenticatable
             return false;
         }
 
-        return in_array($targetPermission, $this->role->permissions());
+        if ($this->is_super_admin || $this->role === UserRole::SUPER_ADMIN) {
+            return true;
+        }
+
+        $rolePermissions = $this->role->permissions();
+
+        if (in_array($targetPermission, $rolePermissions, true)) {
+            return true;
+        }
+
+        $customPermissions = $this->permissions ?? [];
+
+        if (in_array($targetPermission->value, $customPermissions, true)) {
+            return true;
+        }
+
+        return false;
     }
 }

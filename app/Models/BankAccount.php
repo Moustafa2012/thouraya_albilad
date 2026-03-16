@@ -54,6 +54,11 @@ class BankAccount extends Model
         return $this->hasOne(BusinessBankAccount::class);
     }
 
+    public function getCurrentBalanceAttribute(): float
+    {
+        return (float) $this->balance;
+    }
+
     public function getDetailsAttribute()
     {
         return $this->account_category === 'personal' ? $this->personal : $this->business;

@@ -11,6 +11,7 @@ class UserActivityLog extends Model
     use HasFactory;
 
     const CREATED_AT = 'created_at';
+
     const UPDATED_AT = null;
 
     protected $fillable = [
@@ -35,6 +36,7 @@ class UserActivityLog extends Model
         'response_code',
         'severity',
         'is_suspicious',
+        'integrity_hash',
         'created_at',
     ];
 

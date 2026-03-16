@@ -9,7 +9,6 @@ use App\Services\Logging\ActivityLogger;
 use App\Services\Logging\SecurityLogger;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -26,7 +25,10 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(
+            \Laravel\Fortify\Contracts\LoginResponse::class,
+            \App\Http\Responses\LoginResponse::class
+        );
     }
 
     /**
@@ -69,6 +71,7 @@ class FortifyServiceProvider extends ServiceProvider
                     $request->userAgent(),
                     'User not found'
                 );
+
                 return null;
             }
 
@@ -80,6 +83,7 @@ class FortifyServiceProvider extends ServiceProvider
                     $request->userAgent(),
                     'Account is locked'
                 );
+
                 return null;
             }
 
@@ -92,6 +96,7 @@ class FortifyServiceProvider extends ServiceProvider
                     $request->userAgent(),
                     $reason
                 );
+
                 return null;
             }
 

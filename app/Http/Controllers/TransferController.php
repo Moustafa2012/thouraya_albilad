@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PreviewTransferRequest;
 use App\Http\Requests\StoreTransferRequest;
 use App\Http\Resources\BankAccountResource;
 use App\Http\Resources\TransferResource;
 use App\Models\BankAccount;
 use App\Models\Beneficiary;
 use App\Models\Transfer;
+use App\Services\SvgToPdfService;
 use App\Services\TransferDocumentService;
 use App\Services\TransferService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -23,6 +25,7 @@ class TransferController extends Controller
     public function __construct(
         private TransferService $transferService,
         private TransferDocumentService $documentService,
+        private SvgToPdfService $svgToPdfService,
     ) {}
 
     public function index(Request $request): InertiaResponse
@@ -48,6 +51,23 @@ class TransferController extends Controller
             ->latest()
             ->get();
 
+        $balanceInfo = null;
+        $bankAccountId = $request->query('bankAccountId');
+        $amount = $request->query('amount');
+        if (is_string($bankAccountId) && is_string($amount) && is_numeric($amount)) {
+            $selected = $accounts->firstWhere('id', (int) $bankAccountId);
+            if ($selected) {
+                $balance = (float) $selected->balance;
+                $transferAmount = (float) $amount;
+
+                $balanceInfo = [
+                    'balance' => $balance,
+                    'currency' => $selected->currency,
+                    'sufficient' => $balance >= $transferAmount,
+                ];
+            }
+        }
+
         $beneficiaries = Beneficiary::query()
             ->where('user_id', $request->user()->id)
             ->latest()
@@ -61,6 +81,7 @@ class TransferController extends Controller
         return Inertia::render('Createtransfer', [
             'accounts' => BankAccountResource::collection($accounts)->toArray($request),
             'beneficiaries' => $beneficiaries,
+            'balanceInfo' => $balanceInfo,
         ]);
     }
 
@@ -105,11 +126,60 @@ class TransferController extends Controller
             abort(403);
         }
 
-        $pdf = $this->documentService->renderPdf($transfer);
+        $svg = $this->documentService->renderSvg($transfer);
+        $pdf = $this->svgToPdfService->convert($svg);
+
+        $filename = ($transfer->transfer_number ?: ('transfer-'.$transfer->id)).'.pdf';
 
         return response($pdf, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="transfer-request-'.$transfer->id.'.pdf"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'no-store, private',
+        ]);
+    }
+
+    public function previewSvg(PreviewTransferRequest $request): Response
+    {
+        $validated = $request->validated();
+        $user = $request->user();
+
+        $bankAccount = BankAccount::query()
+            ->whereKey((int) $validated['bankAccountId'])
+            ->where('user_id', $user->id)
+            ->with(['personal', 'business'])
+            ->firstOrFail();
+
+        $beneficiary = Beneficiary::query()
+            ->whereKey((int) $validated['beneficiaryId'])
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $transfer = new Transfer;
+        $transfer->forceFill([
+            'user_id' => $user->id,
+            'bank_account_id' => $bankAccount->id,
+            'beneficiary_id' => $beneficiary->id,
+            'amount' => (float) $validated['amount'],
+            'currency' => strtoupper((string) $validated['currency']),
+            'transfer_date' => Carbon::parse((string) $validated['transferDate']),
+            'reference_number' => (string) $validated['referenceNumber'],
+            'notes' => (string) $validated['notes'],
+            'authorized_by' => (string) $validated['authorizedBy'],
+            'transfer_number' => Transfer::nextTransferNumber(now()->format('Y')),
+            'document_hash' => hash('sha256', json_encode($validated, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: ''),
+            'bank_email' => $bankAccount->bank_email,
+            'status' => 'draft',
+        ]);
+
+        $transfer->setRelation('bankAccount', $bankAccount);
+        $transfer->setRelation('beneficiary', $beneficiary);
+        $transfer->setRelation('user', $user);
+
+        $svg = $this->documentService->renderSvg($transfer);
+
+        return response($svg, 200, [
+            'Content-Type' => 'image/svg+xml; charset=UTF-8',
             'X-Content-Type-Options' => 'nosniff',
             'Cache-Control' => 'no-store, private',
         ]);
@@ -126,33 +196,16 @@ class TransferController extends Controller
         return back()->with('success', 'Transfer request sent to bank.');
     }
 
-    public function balanceCheck(Request $request): JsonResponse
+    public function balanceCheck(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'bankAccountId' => ['required', 'integer'],
             'amount' => ['required', 'numeric', 'min:0.01'],
         ]);
 
-        $bankAccount = BankAccount::query()
-            ->whereKey((int) $validated['bankAccountId'])
-            ->where('user_id', $request->user()->id)
-            ->first();
-
-        if (! $bankAccount) {
-            return response()->json([
-                'ok' => false,
-                'message' => 'Invalid bank account selection.',
-            ], 404);
-        }
-
-        $balance = (float) $bankAccount->balance;
-        $amount = (float) $validated['amount'];
-
-        return response()->json([
-            'ok' => true,
-            'balance' => $balance,
-            'currency' => $bankAccount->currency,
-            'sufficient' => $balance >= $amount,
+        return to_route('transfers.create', [
+            'bankAccountId' => (string) $validated['bankAccountId'],
+            'amount' => (string) $validated['amount'],
         ]);
     }
 }

@@ -52,3 +52,29 @@ test('inertia shared props contain role and can', function () {
             })
         );
 });
+
+test('inertia shared props support manager role', function () {
+    $user = User::factory()->create(['role' => UserRole::MANAGER]);
+
+    actingAs($user);
+
+    get('/dashboard')
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('dashboard')
+            ->where('auth.user.role', UserRole::MANAGER->value)
+            ->has('auth.user.can', 4)
+        );
+});
+
+test('inertia shared props support user role', function () {
+    $user = User::factory()->create(['role' => UserRole::USER]);
+
+    actingAs($user);
+
+    get('/dashboard')
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('dashboard')
+            ->where('auth.user.role', UserRole::USER->value)
+            ->has('auth.user.can', 0)
+        );
+});

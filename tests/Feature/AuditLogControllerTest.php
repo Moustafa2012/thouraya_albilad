@@ -1,11 +1,13 @@
 <?php
 
-use App\Http\Controllers\AuditLogController;
 use App\Models\AuditLog;
 use App\Models\User;
 use App\Models\UserActivityLog;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Testing\AssertableInertia;
+
+uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Cache::flush();
@@ -15,7 +17,7 @@ test('audit logs index paginates results', function () {
     $user = User::factory()->create();
     AuditLog::factory()->count(60)->create(['user_id' => $user->id]);
 
-    $response = $this->actingAs($user)
+    $response = test()->actingAs($user)
         ->get(route('audit-logs.index', ['page' => 1, 'per_page' => 50]));
 
     $response->assertInertia(function (AssertableInertia $page) {
@@ -36,7 +38,7 @@ test('audit logs index applies server-side filtering by action', function () {
     AuditLog::factory()->create(['user_id' => $user->id, 'action' => 'create_user']);
     AuditLog::factory()->create(['user_id' => $user->id, 'action' => 'delete_user']);
 
-    $response = $this->actingAs($user)
+    $response = test()->actingAs($user)
         ->get(route('audit-logs.index', ['action' => 'create']));
 
     $response->assertInertia(function (AssertableInertia $page) {
@@ -51,7 +53,7 @@ test('audit logs index applies server-side search', function () {
     AuditLog::factory()->create(['user_id' => $user->id, 'description' => 'User created account']);
     AuditLog::factory()->create(['user_id' => $user->id, 'description' => 'User deleted account']);
 
-    $response = $this->actingAs($user)
+    $response = test()->actingAs($user)
         ->get(route('audit-logs.index', ['search' => 'created']));
 
     $response->assertInertia(function (AssertableInertia $page) {
@@ -66,7 +68,7 @@ test('audit logs index filters by severity', function () {
     AuditLog::factory()->create(['user_id' => $user->id, 'action' => 'delete_user']);
     AuditLog::factory()->create(['user_id' => $user->id, 'action' => 'create_user']);
 
-    $response = $this->actingAs($user)
+    $response = test()->actingAs($user)
         ->get(route('audit-logs.index', ['severity' => 'critical']));
 
     $response->assertInertia(function (AssertableInertia $page) {
@@ -81,7 +83,7 @@ test('audit logs index filters by date range', function () {
     AuditLog::factory()->create(['user_id' => $user->id, 'created_at' => now()->subDays(10)]);
     AuditLog::factory()->create(['user_id' => $user->id, 'created_at' => now()]);
 
-    $response = $this->actingAs($user)
+    $response = test()->actingAs($user)
         ->get(route('audit-logs.index', ['date_range' => 'week']));
 
     $response->assertInertia(function (AssertableInertia $page) {
@@ -94,18 +96,18 @@ test('audit logs export returns CSV', function () {
     $user = User::factory()->create();
     AuditLog::factory()->create(['user_id' => $user->id]);
 
-    $response = $this->actingAs($user)
+    $response = test()->actingAs($user)
         ->get(route('audit-logs.export', ['format' => 'csv']));
 
     $response->assertStatus(200)
-        ->assertHeader('content-type', 'text/csv');
+        ->assertHeader('content-type', 'text/csv; charset=utf-8');
 });
 
 test('audit logs export returns JSON', function () {
     $user = User::factory()->create();
     AuditLog::factory()->create(['user_id' => $user->id]);
 
-    $response = $this->actingAs($user)
+    $response = test()->actingAs($user)
         ->get(route('audit-logs.export', ['format' => 'json']));
 
     $response->assertStatus(200)
@@ -121,7 +123,7 @@ test('audit logs stats returns statistics', function () {
     AuditLog::factory()->create(['user_id' => $user->id, 'action' => 'delete_user']);
     UserActivityLog::factory()->create(['user_id' => $user->id, 'action' => 'login']);
 
-    $response = $this->actingAs($user)
+    $response = test()->actingAs($user)
         ->get(route('audit-logs.stats'));
 
     $response->assertStatus(200)
@@ -139,10 +141,10 @@ test('audit logs index caches results', function () {
     $user = User::factory()->create();
     AuditLog::factory()->count(10)->create(['user_id' => $user->id]);
 
-    $this->actingAs($user)
+    test()->actingAs($user)
         ->get(route('audit-logs.index', ['page' => 1, 'per_page' => 50]));
 
-    $cacheKey = 'audit_logs_page_1_50_' . md5(json_encode([]));
+    $cacheKey = 'audit_logs_page_1_50_'.md5(json_encode([]));
 
     expect(Cache::has($cacheKey))->toBeTrue();
 });

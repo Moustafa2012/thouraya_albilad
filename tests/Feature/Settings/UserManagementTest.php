@@ -30,6 +30,28 @@ test('manage users page is available for admins', function () {
         );
 });
 
+test('manage users page renders when users have manager and user roles', function () {
+    $admin = User::factory()->admin()->create();
+
+    User::factory()->create(['role' => UserRole::MANAGER]);
+    User::factory()->create(['role' => UserRole::USER]);
+
+    actingAs($admin);
+
+    get('/settings/users')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('settings/users')
+            ->where('roles', function ($roles) {
+                if ($roles instanceof \Illuminate\Support\Collection) {
+                    return $roles->contains(UserRole::MANAGER->value) && $roles->contains(UserRole::USER->value);
+                }
+
+                return in_array(UserRole::MANAGER->value, $roles, true) && in_array(UserRole::USER->value, $roles, true);
+            })
+        );
+});
+
 test('admin can update another user role and status', function () {
     $admin = User::factory()->admin()->create();
     $target = User::factory()->create(['role' => UserRole::VISITOR, 'is_active' => true, 'is_banned' => false]);

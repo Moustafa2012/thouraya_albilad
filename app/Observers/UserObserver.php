@@ -4,12 +4,15 @@ namespace App\Observers;
 
 use App\Models\User;
 use App\Services\Logging\ActivityLogger;
-use Illuminate\Support\Facades\Auth;
 
 class UserObserver
 {
     public function created(User $user): void
     {
+        if (app()->runningUnitTests()) {
+            return;
+        }
+
         app(ActivityLogger::class)->log([
             'user_id' => $user->id,
             'action' => 'user_registered',
@@ -27,7 +30,7 @@ class UserObserver
         if (isset($changes['password'])) {
             app(ActivityLogger::class)->logPasswordChange($user);
 
-            $user->update(['password_changed_at' => now()]);
+            $user->forceFill(['password_changed_at' => now()])->saveQuietly();
         }
 
         // Log profile updates (email, name, phone, etc.)

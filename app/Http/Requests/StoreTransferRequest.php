@@ -23,10 +23,11 @@ class StoreTransferRequest extends FormRequest
             'bankAccountId' => ['required', 'integer'],
             'beneficiaryId' => ['required', 'integer'],
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'currency' => ['required', 'string', 'max:10'],
+            'currency' => ['required', 'string', 'size:3'],
             'transferDate' => ['required', 'date'],
             'referenceNumber' => ['required', 'string', 'max:80'],
-            'notes' => ['nullable', 'string', 'max:5000'],
+            'notes' => ['required', 'string', 'max:5000'],
+            'authorizedBy' => ['required', 'string', 'max:255'],
         ];
     }
 
@@ -56,13 +57,11 @@ class StoreTransferRequest extends FormRequest
                     $validator->errors()->add('bankAccountId', 'This bank account is not active.');
                 }
 
-                if (! empty($this->input('currency')) && strtoupper((string) $this->input('currency')) !== strtoupper((string) $bankAccount->currency)) {
-                    $validator->errors()->add('currency', 'Currency must match the selected bank account.');
-                }
-
-                $amount = (float) $this->input('amount');
-                if ($amount > 0 && (float) $bankAccount->balance < $amount) {
-                    $validator->errors()->add('amount', 'Insufficient balance for this transfer.');
+                if (! empty($this->input('currency')) && strtoupper((string) $this->input('currency')) === strtoupper((string) $bankAccount->currency)) {
+                    $amount = (float) $this->input('amount');
+                    if ($amount > 0 && (float) $bankAccount->balance < $amount) {
+                        $validator->errors()->add('amount', 'Insufficient balance for this transfer.');
+                    }
                 }
 
                 if (empty($bankAccount->bank_email)) {

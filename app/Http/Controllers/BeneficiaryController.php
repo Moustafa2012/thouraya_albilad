@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateBeneficiaryRequest;
 use App\Models\Beneficiary;
 use App\Services\BeneficiaryService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,10 +21,10 @@ class BeneficiaryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         return Inertia::render('beneficiaries', [
-            'beneficiaries' => auth()->user()->beneficiaries()
+            'beneficiaries' => $request->user()->beneficiaries()
                 ->latest()
                 ->get()
                 ->map(function ($beneficiary) {
@@ -55,9 +56,11 @@ class BeneficiaryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Beneficiary $beneficiary)
+    public function show(Request $request, Beneficiary $beneficiary): RedirectResponse
     {
-        //
+        abort_unless($beneficiary->user_id === $request->user()->id, 403);
+
+        return to_route('beneficiaries.edit', $beneficiary);
     }
 
     /**

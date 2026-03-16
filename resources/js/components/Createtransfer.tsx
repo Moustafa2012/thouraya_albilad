@@ -1,7 +1,6 @@
 'use client';
 
-import type { RequestPayload } from '@inertiajs/core';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeftRight, CalendarDays, CheckCircle2, CreditCard, Landmark, Mail, Save, Users, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -32,6 +31,7 @@ type TransferErrors = Partial<Record<keyof TransferFormData, string>>;
 type PageProps = {
   accounts?: BankAccount[];
   beneficiaries?: Beneficiary[];
+  balanceInfo?: { balance: number; currency: string; sufficient: boolean } | null;
   flash?: { success?: string; error?: string };
 };
 
@@ -75,7 +75,7 @@ function formatMoney(amount: number, currency: string, isRtl: boolean): string {
 
 export default function CreateTransfer() {
   const page = usePage();
-  const { accounts = [], beneficiaries = [], flash } = page.props as unknown as PageProps;
+  const { accounts = [], beneficiaries = [], balanceInfo: balanceInfoProp = null, flash } = page.props as unknown as PageProps;
 
   const { t, direction } = useLanguage();
   const isRtl = direction === 'rtl';
@@ -85,9 +85,6 @@ export default function CreateTransfer() {
     { title: t('Add Transfer', 'إضافة تحويل'), href: '/transfers/create' },
   ];
 
-  const [form, setForm] = useState<TransferFormData>({ ...INITIAL_FORM_DATA });
-  const [errors, setErrors] = useState<TransferErrors>({});
-  const [submitting, setSubmitting] = useState(false);
   const [balanceInfo, setBalanceInfo] = useState<{ balance: number; currency: string; sufficient: boolean } | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(() => {
     if (flash?.success) return { type: 'success', message: flash.success };
@@ -95,6 +92,9 @@ export default function CreateTransfer() {
     return null;
   });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const form = useForm<TransferFormData>({ ...INITIAL_FORM_DATA });
+  const errors = form.errors as TransferErrors;
+  const submitting = form.processing;
 
   useEffect(() => {
     return () => {
@@ -102,8 +102,12 @@ export default function CreateTransfer() {
     };
   }, []);
 
-  const selectedAccount = useMemo(() => accounts.find((a) => a.id === form.bankAccountId) ?? null, [accounts, form.bankAccountId]);
-  const selectedBeneficiary = useMemo(() => beneficiaries.find((b) => b.id === form.beneficiaryId) ?? null, [beneficiaries, form.beneficiaryId]);
+  useEffect(() => {
+    setBalanceInfo(balanceInfoProp);
+  }, [balanceInfoProp]);
+
+  const selectedAccount = useMemo(() => accounts.find((a) => a.id === form.data.bankAccountId) ?? null, [accounts, form.data.bankAccountId]);
+  const selectedBeneficiary = useMemo(() => beneficiaries.find((b) => b.id === form.data.beneficiaryId) ?? null, [beneficiaries, form.data.beneficiaryId]);
 
   function scheduleBalanceCheck(nextAmount: string, nextBankAccountId: string) {
     const amount = Number(nextAmount);
@@ -115,29 +119,21 @@ export default function CreateTransfer() {
     if (timerRef.current) clearTimeout(timerRef.current);
 
     timerRef.current = setTimeout(() => {
-      fetch(
-        `/transfers/balance-check?bankAccountId=${encodeURIComponent(nextBankAccountId)}&amount=${encodeURIComponent(nextAmount)}`,
-        { credentials: 'same-origin' },
-      )
-        .then((r) => r.json())
-        .then((data) => {
-          if (data?.ok) {
-            setBalanceInfo({ balance: Number(data.balance), currency: String(data.currency), sufficient: Boolean(data.sufficient) });
-          } else {
-            setBalanceInfo(null);
-          }
-        })
-        .catch(() => setBalanceInfo(null));
+      router.get(
+        '/transfers/create',
+        { bankAccountId: nextBankAccountId, amount: nextAmount },
+        { preserveState: true, preserveScroll: true, replace: true, only: ['balanceInfo'] },
+      );
     }, 350);
   }
 
   const localSufficient = useMemo(() => {
     if (!selectedAccount) return true;
-    const amount = Number(form.amount);
+    const amount = Number(form.data.amount);
     if (!Number.isFinite(amount) || amount <= 0) return true;
     if (selectedAccount.balance == null) return true;
     return Number(selectedAccount.balance) >= amount;
-  }, [form.amount, selectedAccount]);
+  }, [form.data.amount, selectedAccount]);
 
   const sufficient = balanceInfo ? balanceInfo.sufficient : localSufficient;
 
@@ -145,63 +141,33 @@ export default function CreateTransfer() {
     if (key === 'bankAccountId') {
       const nextId = String(value);
       const nextAccount = accounts.find((a) => a.id === nextId) ?? null;
-      const nextCurrency = nextAccount ? nextAccount.currency : form.currency;
+      const nextCurrency = nextAccount ? nextAccount.currency : form.data.currency;
 
       setBalanceInfo(null);
-      setForm((prev) => ({ ...prev, bankAccountId: nextId, currency: nextCurrency }));
-      scheduleBalanceCheck(form.amount, nextId);
+      form.setData((prev) => ({ ...prev, bankAccountId: nextId, currency: nextCurrency }));
+      scheduleBalanceCheck(form.data.amount, nextId);
     } else if (key === 'amount') {
       const nextAmount = String(value);
-      setForm((prev) => ({ ...prev, amount: nextAmount }));
-      scheduleBalanceCheck(nextAmount, form.bankAccountId);
+      form.setData((prev) => ({ ...prev, amount: nextAmount }));
+      scheduleBalanceCheck(nextAmount, form.data.bankAccountId);
     } else {
-      setForm((prev) => ({ ...prev, [key]: value }));
+      form.setData(key, value as any);
     }
-
-    setErrors((prev) => {
-      if (!prev[key]) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
+    form.clearErrors(key);
   }
 
   function submit() {
-    const newErrors = validate(form, t);
+    const newErrors = validate(form.data, t);
     if (!sufficient) newErrors.amount = t('Insufficient balance for this transfer.', 'الرصيد غير كافٍ لهذا التحويل.');
 
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      form.setError(newErrors);
       return;
     }
 
-    setSubmitting(true);
-
-    const payload: RequestPayload = {
-      bankAccountId: form.bankAccountId,
-      beneficiaryId: form.beneficiaryId,
-      amount: form.amount,
-      currency: form.currency,
-      transferDate: form.transferDate,
-      referenceNumber: form.referenceNumber,
-      notes: form.notes || null,
-    };
-
-    router.post('/transfers', payload, {
-      onError: (serverErrors) => {
-        setSubmitting(false);
-        const mapped: TransferErrors = {};
-        for (const [key, value] of Object.entries(serverErrors)) {
-          mapped[key as keyof TransferFormData] = Array.isArray(value) ? value[0] : String(value);
-        }
-        setErrors(mapped);
+    form.post('/transfers', {
+      onError: () => {
         setNotification({ type: 'error', message: t('Please fix the highlighted fields.', 'يرجى تصحيح الحقول المطلوبة.') });
-      },
-      onSuccess: () => {
-        setSubmitting(false);
-      },
-      onFinish: () => {
-        setSubmitting(false);
       },
     });
   }
@@ -281,7 +247,7 @@ export default function CreateTransfer() {
                         <Landmark className="size-3.5" aria-hidden="true" />
                         {t('Source account', 'الحساب المصدر')}
                       </Label>
-                      <Select value={form.bankAccountId} onValueChange={(v) => set('bankAccountId', v)}>
+                      <Select value={form.data.bankAccountId} onValueChange={(v) => set('bankAccountId', v)}>
                         <SelectTrigger className={cn('h-10 bg-background/60', errors.bankAccountId && 'border-destructive')}>
                           <SelectValue placeholder={t('Select bank account', 'اختر الحساب البنكي')} />
                         </SelectTrigger>
@@ -301,7 +267,7 @@ export default function CreateTransfer() {
                         <Users className="size-3.5" aria-hidden="true" />
                         {t('Beneficiary', 'المستفيد')}
                       </Label>
-                      <Select value={form.beneficiaryId} onValueChange={(v) => set('beneficiaryId', v)}>
+                      <Select value={form.data.beneficiaryId} onValueChange={(v) => set('beneficiaryId', v)}>
                         <SelectTrigger className={cn('h-10 bg-background/60', errors.beneficiaryId && 'border-destructive')}>
                           <SelectValue placeholder={t('Select beneficiary', 'اختر المستفيد')} />
                         </SelectTrigger>
@@ -328,7 +294,7 @@ export default function CreateTransfer() {
                         inputMode="decimal"
                         min="0.01"
                         step="0.01"
-                        value={form.amount}
+                        value={form.data.amount}
                         onChange={(e) => set('amount', e.target.value)}
                         placeholder={t('0.00', '0.00')}
                         className={cn('h-10 bg-background/60', errors.amount && 'border-destructive')}
@@ -354,7 +320,7 @@ export default function CreateTransfer() {
                         {t('Currency', 'العملة')}
                       </Label>
                       <Input
-                        value={form.currency}
+                        value={form.data.currency}
                         onChange={(e) => set('currency', e.target.value.toUpperCase())}
                         placeholder={t('SAR', 'SAR')}
                         className={cn('h-10 bg-background/60', errors.currency && 'border-destructive')}
@@ -375,7 +341,7 @@ export default function CreateTransfer() {
                       </Label>
                       <Input
                         type="date"
-                        value={form.transferDate}
+                        value={form.data.transferDate}
                         onChange={(e) => set('transferDate', e.target.value)}
                         className={cn('h-10 bg-background/60', errors.transferDate && 'border-destructive')}
                       />
@@ -389,7 +355,7 @@ export default function CreateTransfer() {
                         {t('Reference number', 'رقم المرجع')}
                       </Label>
                       <Input
-                        value={form.referenceNumber}
+                        value={form.data.referenceNumber}
                         onChange={(e) => set('referenceNumber', e.target.value)}
                         placeholder={t('e.g. INV-2026-001', 'مثال: INV-2026-001')}
                         className={cn('h-10 bg-background/60', errors.referenceNumber && 'border-destructive')}
@@ -402,7 +368,7 @@ export default function CreateTransfer() {
                         {t('Notes (optional)', 'ملاحظات (اختياري)')}
                       </Label>
                       <Textarea
-                        value={form.notes}
+                        value={form.data.notes}
                         onChange={(e) => set('notes', e.target.value)}
                         placeholder={t('Add a note for the bank...', 'أضف ملاحظة للبنك...')}
                         className="min-h-10 bg-background/60"
@@ -441,9 +407,9 @@ export default function CreateTransfer() {
                   {[
                     { label: t('From', 'من'), value: selectedAccount?.bankName || '—', icon: Landmark },
                     { label: t('To', 'إلى'), value: selectedBeneficiary?.nameAr || selectedBeneficiary?.nameEn || '—', icon: Users },
-                    { label: t('Amount', 'المبلغ'), value: form.amount && form.currency ? `${form.amount} ${form.currency}` : '—', icon: CreditCard },
-                    { label: t('Date', 'التاريخ'), value: form.transferDate || '—', icon: CalendarDays },
-                    { label: t('Reference', 'المرجع'), value: form.referenceNumber || '—', icon: Mail },
+                    { label: t('Amount', 'المبلغ'), value: form.data.amount && form.data.currency ? `${form.data.amount} ${form.data.currency}` : '—', icon: CreditCard },
+                    { label: t('Date', 'التاريخ'), value: form.data.transferDate || '—', icon: CalendarDays },
+                    { label: t('Reference', 'المرجع'), value: form.data.referenceNumber || '—', icon: Mail },
                   ].map(({ label, value, icon: Icon }) => (
                     <div key={label} className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 px-3 py-3">
                       <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">

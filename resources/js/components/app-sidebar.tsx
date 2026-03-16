@@ -1,12 +1,14 @@
 import { Link } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import {
+    ArrowLeftRight,
     Banknote,
+    BarChart3,
     BookOpen,
     CreditCard,
-    ArrowLeftRight,
     FileClock,
     LayoutGrid,
+    UserCog,
     Users,
     ChevronDown,
 } from 'lucide-react';
@@ -34,7 +36,7 @@ interface NavSection {
     items: NavItem[];
 }
 
-const getNavSections = (t: (en: string, ar: string) => string): NavSection[] => [
+const getNavSections = (t: (en: string, ar: string) => string, isSuperAdmin = false): NavSection[] => [
     {
         label: t('Overview', 'نظرة عامة'),
         items: [
@@ -59,9 +61,14 @@ const getNavSections = (t: (en: string, ar: string) => string): NavSection[] => 
                 icon: Banknote,
             },
             {
-                title: t('Various Journals entries ', 'القيود المختلفة'),
+                title: t('Journal entries', 'القيود المختلفة'),
                 href: '/journals',
                 icon: BookOpen,
+            },
+            {
+                title: t('Reports', 'التقارير'),
+                href: '/reports',
+                icon: BarChart3,
             },
         ],
     },
@@ -78,6 +85,9 @@ const getNavSections = (t: (en: string, ar: string) => string): NavSection[] => 
     {
         label: t('System', 'النظام'),
         items: [
+            ...(isSuperAdmin
+                ? [{ title: t('User Management', 'إدارة المستخدمين'), href: '/settings/users', icon: UserCog as typeof FileClock }]
+                : []),
             {
                 title: t('Audit Logs', 'سجلات التدقيق'),
                 href: '/audit-logs',
@@ -88,7 +98,7 @@ const getNavSections = (t: (en: string, ar: string) => string): NavSection[] => 
 ];
 
 // Fallback for non-sectioned navigation
-const getMainNavItems = (t: (en: string, ar: string) => string): NavItem[] => [
+const getMainNavItems = (t: (en: string, ar: string) => string, isSuperAdmin = false): NavItem[] => [
     {
         title: t('Dashboard', 'لوحة التحكم'),
         href: dashboard().url,
@@ -110,10 +120,18 @@ const getMainNavItems = (t: (en: string, ar: string) => string): NavItem[] => [
         icon: Banknote,
     },
     {
-        title: t('Various Journals entries ', 'القيود المختلفة'),
+        title: t('Journal entries', 'القيود المختلفة'),
         href: '/journals',
         icon: BookOpen,
     },
+    {
+        title: t('Reports', 'التقارير'),
+        href: '/reports',
+        icon: BarChart3,
+    },
+    ...(isSuperAdmin
+        ? [{ title: t('User Management', 'إدارة المستخدمين'), href: '/settings/users', icon: UserCog }]
+        : []),
     {
         title: t('Audit Logs', 'سجلات التدقيق'),
         href: '/audit-logs',
@@ -130,10 +148,12 @@ interface AppSidebarProps {
 
 export function AppSidebar({ useSections = false, className }: AppSidebarProps) {
     const { t, direction } = useLanguage();
-    const { url } = usePage();
+    const { url, props } = usePage();
+    const auth = (props as { auth?: { user?: { role?: string } } }).auth;
+    const isSuperAdmin = auth?.user?.role === 'super_admin';
 
-    const mainNavItems = getMainNavItems(t);
-    const navSections = getNavSections(t);
+    const mainNavItems = getMainNavItems(t, isSuperAdmin);
+    const navSections = getNavSections(t, isSuperAdmin);
 
     return (
         <Sidebar

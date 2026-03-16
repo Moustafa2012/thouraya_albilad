@@ -1,6 +1,8 @@
 export const ROLES = {
     SUPER_ADMIN: 'super_admin',
     ADMIN: 'admin',
+    MANAGER: 'manager',
+    USER: 'user',
     VISITOR: 'visitor',
 } as const;
 
@@ -59,11 +61,31 @@ export const ROLE_CONFIG: Record<Role, RoleMeta> = {
             PERMISSIONS.VIEW_ANALYTICS,
         ],
     },
+    [ROLES.MANAGER]: {
+        label: 'Manager',
+        description: 'Department oversight and reporting access',
+        badgeClass:
+            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+        dashboardPath: '/admin',
+        permissions: [
+            PERMISSIONS.ADMIN_ACCESS,
+            PERMISSIONS.MANAGE_USERS,
+            PERMISSIONS.MANAGE_CONTENT,
+            PERMISSIONS.VIEW_ANALYTICS,
+        ],
+    },
+    [ROLES.USER]: {
+        label: 'User',
+        description: 'Standard access',
+        badgeClass: 'bg-muted text-muted-foreground',
+        dashboardPath: '/',
+        permissions: [],
+    },
     [ROLES.VISITOR]: {
         label: 'Visitor',
-        description: 'Standard access to platform features',
+        description: 'Welcome page only — no dashboard access',
         badgeClass: 'bg-muted text-muted-foreground',
-        dashboardPath: '/dashboard',
+        dashboardPath: '/',
         permissions: [],
     },
 };

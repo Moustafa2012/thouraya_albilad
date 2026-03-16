@@ -30,13 +30,16 @@ test('reset password screen can be rendered', function () {
 
     post(route('password.email'), ['email' => $user->email]);
 
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-        $response = get(route('password.reset', $notification->token));
-
-        $response->assertOk();
+    $token = null;
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use (&$token) {
+        $token = $notification->token;
 
         return true;
     });
+
+    $response = get(route('password.reset', $token));
+
+    $response->assertOk();
 });
 
 test('password can be reset with valid token', function () {
@@ -46,20 +49,23 @@ test('password can be reset with valid token', function () {
 
     post(route('password.email'), ['email' => $user->email]);
 
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
-        $response = post(route('password.update'), [
-            'token' => $notification->token,
-            'email' => $user->email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ]);
-
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect(route('login'));
+    $token = null;
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use (&$token) {
+        $token = $notification->token;
 
         return true;
     });
+
+    $response = post(route('password.update'), [
+        'token' => $token,
+        'email' => $user->email,
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('login'));
 });
 
 test('password cannot be reset with invalid token', function () {

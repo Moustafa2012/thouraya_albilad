@@ -21,8 +21,10 @@ class TransferRequestMail extends Mailable
     {
         $this->transfer->loadMissing(['bankAccount', 'beneficiary', 'user']);
 
+        $subjectNumber = $this->transfer->transfer_number ?? "Transfer #{$this->transfer->id}";
+
         return $this
-            ->subject("Transfer Request #{$this->transfer->id}")
+            ->subject("Transfer Request {$subjectNumber}")
             ->view('emails.transfer-request', [
                 'transfer' => $this->transfer,
             ]);
@@ -35,8 +37,10 @@ class TransferRequestMail extends Mailable
     {
         $pdf = app(TransferDocumentService::class)->renderPdf($this->transfer);
 
+        $filename = ($this->transfer->transfer_number ?: "transfer-request-{$this->transfer->id}").'.pdf';
+
         return [
-            Attachment::fromData(fn () => $pdf, "transfer-request-{$this->transfer->id}.pdf")
+            Attachment::fromData(fn () => $pdf, $filename)
                 ->withMime('application/pdf'),
         ];
     }

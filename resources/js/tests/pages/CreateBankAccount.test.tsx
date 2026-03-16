@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { BankAccount } from '@/components/Banks/types';
@@ -13,21 +14,54 @@ vi.mock('@/components/language-provider', () => ({
 }));
 
 // Mock Inertia router
-vi.mock('@inertiajs/react', () => ({
-  router: {
+vi.mock('@inertiajs/react', () => {
+  const router = {
     post: vi.fn(),
     put: vi.fn(),
     visit: vi.fn(),
-  },
-  usePage: vi.fn(() => ({
-    props: {
-      flash: {},
-      account: null,
-      isEdit: false,
-    },
-  })),
-  Head: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+  };
+
+  const useForm = (initial: any) => {
+    const [data, setDataState] = React.useState(initial);
+    const [processing] = React.useState(false);
+    const [errors] = React.useState({});
+
+    const setData = (key: any, value?: any) => {
+      if (typeof key === 'string') {
+        setDataState((prev: any) => ({ ...prev, [key]: value }));
+      } else {
+        setDataState(key);
+      }
+    };
+
+    return {
+      data,
+      setData,
+      processing,
+      errors,
+      clearErrors: vi.fn(),
+      post: (url: string, options?: any) => {
+        router.post(url, data, options);
+      },
+      put: (url: string, options?: any) => {
+        router.put(url, data, options);
+      },
+    };
+  };
+
+  return {
+    router,
+    useForm,
+    usePage: vi.fn(() => ({
+      props: {
+        flash: {},
+        account: null,
+        isEdit: false,
+      },
+    })),
+    Head: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  };
+});
 
 // Mock AppLayout
 vi.mock('@/layouts/app-layout', () => ({
@@ -218,8 +252,13 @@ const renderWithRouter = (component: React.ReactElement) => {
 };
 
 describe('CreateBankAccount - Adding New Bank Account', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+
+    const validation = await import('@/components/Banks/BankAccountValidation');
+    vi.mocked(validation.validateStep).mockImplementation(() => ({}));
+    vi.mocked(validation.validateAllSteps).mockImplementation(() => []);
+    vi.mocked(validation.hasErrors).mockImplementation(() => false);
   });
 
   it('renders the create bank account form with all steps', () => {
@@ -350,7 +389,7 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
   });
 
   it('submits personal bank account form with correct payload', async () => {
-    const { router } = require('@inertiajs/react');
+    const { router } = await import('@inertiajs/react');
     
     renderWithRouter(<CreateBankAccount />);
 
@@ -401,7 +440,7 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
     fireEvent.change(screen.getByTestId('notes'), { target: { value: 'Primary personal account' } });
 
     // Submit the form
-    const submitButton = screen.getByText('Create Account');
+    const submitButton = screen.getByText('Create account');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -425,7 +464,7 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
   });
 
   it('submits business bank account form with correct payload', async () => {
-    const { router } = require('@inertiajs/react');
+    const { router } = await import('@inertiajs/react');
     
     renderWithRouter(<CreateBankAccount />);
 
@@ -475,7 +514,7 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
     fireEvent.change(screen.getByTestId('notes'), { target: { value: 'Primary business account' } });
 
     // Submit the form
-    const submitButton = screen.getByText('Create Account');
+    const submitButton = screen.getByText('Create account');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -499,7 +538,7 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
   });
 
   it('shows validation errors when required fields are missing', async () => {
-    const { validateStep, hasErrors } = require('@/components/Banks/BankAccountValidation');
+    const { validateStep, hasErrors } = await import('@/components/Banks/BankAccountValidation');
     
     validateStep.mockReturnValue({ accountCategory: 'Account category is required' });
     hasErrors.mockReturnValue(true);
@@ -544,7 +583,7 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
   });
 
   it('shows success notification when account is created successfully', async () => {
-    const { router } = require('@inertiajs/react');
+    const { router } = await import('@inertiajs/react');
     
     // Mock successful response
     router.post.mockImplementation((url: any, data: any, options: any) => {
@@ -587,11 +626,11 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
     fireEvent.click(nextButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Account')).toBeInTheDocument();
+      expect(screen.getByText('Create account')).toBeInTheDocument();
     });
 
     // Submit the form
-    const submitButton = screen.getByText('Create Account');
+    const submitButton = screen.getByText('Create account');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -600,7 +639,7 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
   });
 
   it('shows error notification when account creation fails', async () => {
-    const { router } = require('@inertiajs/react');
+    const { router } = await import('@inertiajs/react');
     
     // Mock error response
     router.post.mockImplementation((url: any, data: any, options: any) => {
@@ -643,11 +682,11 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
     fireEvent.click(nextButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Account')).toBeInTheDocument();
+      expect(screen.getByText('Create account')).toBeInTheDocument();
     });
 
     // Submit the form
-    const submitButton = screen.getByText('Create Account');
+    const submitButton = screen.getByText('Create account');
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -656,7 +695,7 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
   });
 
   it('prevents double submission when clicking submit multiple times', async () => {
-    const { router } = require('@inertiajs/react');
+    const { router } = await import('@inertiajs/react');
     
     renderWithRouter(<CreateBankAccount />);
 
@@ -694,11 +733,11 @@ describe('CreateBankAccount - Adding New Bank Account', () => {
     fireEvent.click(nextButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Account')).toBeInTheDocument();
+      expect(screen.getByText('Create account')).toBeInTheDocument();
     });
 
     // Try to submit multiple times
-    const submitButton = screen.getByText('Create Account');
+    const submitButton = screen.getByText('Create account');
     fireEvent.click(submitButton);
     fireEvent.click(submitButton);
     fireEvent.click(submitButton);

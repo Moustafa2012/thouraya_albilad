@@ -1,10 +1,14 @@
 <?php
 
-use App\Services\Logging\AuditLogIntegrity;
 use App\Models\AuditLog;
-use App\Models\UserActivityLog;
 use App\Models\User;
+use App\Models\UserActivityLog;
+use App\Services\Logging\AuditLogIntegrity;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function () {
     Storage::fake('local');
@@ -19,7 +23,7 @@ test('generates hash for audit log', function () {
         'auditable_id' => $user->id,
     ]);
 
-    $integrity = new AuditLogIntegrity();
+    $integrity = new AuditLogIntegrity;
     $integrity->signAuditLog($log);
 
     expect($log->integrity_hash)->not->toBeNull();
@@ -33,7 +37,7 @@ test('generates hash for activity log', function () {
         'action' => 'login',
     ]);
 
-    $integrity = new AuditLogIntegrity();
+    $integrity = new AuditLogIntegrity;
     $integrity->signActivityLog($log);
 
     expect($log->integrity_hash)->not->toBeNull();
@@ -49,7 +53,7 @@ test('verifies valid audit log hash', function () {
         'auditable_id' => $user->id,
     ]);
 
-    $integrity = new AuditLogIntegrity();
+    $integrity = new AuditLogIntegrity;
     $integrity->signAuditLog($log);
 
     expect($integrity->verifyAuditLog($log))->toBeTrue();
@@ -62,7 +66,7 @@ test('verifies valid activity log hash', function () {
         'action' => 'login',
     ]);
 
-    $integrity = new AuditLogIntegrity();
+    $integrity = new AuditLogIntegrity;
     $integrity->signActivityLog($log);
 
     expect($integrity->verifyActivityLog($log))->toBeTrue();
@@ -77,7 +81,7 @@ test('detects tampered audit log', function () {
         'auditable_id' => $user->id,
     ]);
 
-    $integrity = new AuditLogIntegrity();
+    $integrity = new AuditLogIntegrity;
     $integrity->signAuditLog($log);
 
     $log->action = 'delete_user';
@@ -93,7 +97,7 @@ test('detects tampered activity log', function () {
         'action' => 'login',
     ]);
 
-    $integrity = new AuditLogIntegrity();
+    $integrity = new AuditLogIntegrity;
     $integrity->signActivityLog($log);
 
     $log->action = 'logout';
@@ -110,17 +114,17 @@ test('returns false for log without hash', function () {
         'integrity_hash' => null,
     ]);
 
-    $integrity = new AuditLogIntegrity();
+    $integrity = new AuditLogIntegrity;
     expect($integrity->verifyAuditLog($log))->toBeFalse();
 });
 
 test('verifies all logs returns statistics', function () {
     $user = User::factory()->create();
-    
+
     $auditLogs = AuditLog::factory()->count(5)->create(['user_id' => $user->id]);
     $activityLogs = UserActivityLog::factory()->count(5)->create(['user_id' => $user->id]);
 
-    $integrity = new AuditLogIntegrity();
+    $integrity = new AuditLogIntegrity;
     $integrity->signAuditLog($auditLogs->first());
     $integrity->signActivityLog($activityLogs->first());
 
@@ -133,8 +137,8 @@ test('verifies all logs returns statistics', function () {
 });
 
 test('signs recent logs', function () {
-    $user = User::factory()->create();
-    
+    $user = User::factory()->createQuietly();
+
     AuditLog::factory()->count(5)->create([
         'user_id' => $user->id,
         'integrity_hash' => null,
@@ -145,7 +149,7 @@ test('signs recent logs', function () {
         'integrity_hash' => null,
     ]);
 
-    $integrity = new AuditLogIntegrity();
+    $integrity = new AuditLogIntegrity;
     $integrity->signRecentLogs(10);
 
     expect(AuditLog::whereNotNull('integrity_hash')->count())->toBe(5);
@@ -168,7 +172,7 @@ test('hash is deterministic for same data', function () {
         'auditable_id' => $user->id,
     ]);
 
-    $integrity = new AuditLogIntegrity();
+    $integrity = new AuditLogIntegrity;
     $hash1 = $integrity->generateHash([
         'id' => $log1->id,
         'user_id' => $log1->user_id,

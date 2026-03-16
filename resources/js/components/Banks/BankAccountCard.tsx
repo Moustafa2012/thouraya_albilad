@@ -11,6 +11,15 @@ const CATEGORY_CONFIG: Record<string, { gradient: string; icon: React.ElementTyp
   business: { gradient: 'from-emerald-600 to-emerald-500', icon: Building2, labelEn: 'Business', labelAr: 'تجاري' },
 };
 
+function formatBalance(value: number | null | undefined) {
+  const amount = Number(value ?? 0);
+  const safe = Number.isFinite(amount) ? amount : 0;
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(safe);
+}
+
 function maskIban(iban: string) {
   return iban.length <= 8 ? iban : `${iban.slice(0, 4)} •••• •••• ${iban.slice(-4)}`;
 }
@@ -35,8 +44,11 @@ export function BankAccountCard({
   const config = CATEGORY_CONFIG[account.accountCategory] ?? CATEGORY_CONFIG.personal;
   const CategoryIcon = config.icon;
 
+  const balanceText = `${formatBalance(account.balance)} ${account.currency}`;
+
   const infoChips = [
     { label: 'SWIFT', value: account.swiftCode },
+    { label: t('Balance', 'الرصيد'), value: balanceText },
     { label: t('Currency', 'العملة'), value: account.currency },
     ...(account.iban ? [] : [{ label: t('Acc #', 'رقم'), value: account.accountNumber }]),
   ].filter((c) => c.value);

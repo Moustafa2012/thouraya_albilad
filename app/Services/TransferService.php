@@ -9,6 +9,7 @@ use App\Models\Beneficiary;
 use App\Models\Transfer;
 use App\Services\Logging\ActivityLogger;
 use App\Services\Logging\AuditLogger;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -34,40 +35,39 @@ class TransferService
 
             $amount = (float) $validated['amount'];
 
-            $transfer = Transfer::create([
-                'user_id' => $user->id,
-                'bank_account_id' => $bankAccount->id,
-                'beneficiary_id' => $beneficiary->id,
-                'amount' => $amount,
-                'currency' => strtoupper((string) $validated['currency']),
-                'transfer_date' => $validated['transferDate'],
-                'reference_number' => $validated['referenceNumber'],
-                'notes' => $validated['notes'] ?? null,
-                'bank_email' => $bankAccount->bank_email,
-                'status' => 'submitted',
-            ]);
+            $attempts = 0;
+            $transfer = null;
+            while (! $transfer) {
+                try {
+                    $transfer = Transfer::create([
+                        'user_id' => $user->id,
+                        'bank_account_id' => $bankAccount->id,
+                        'beneficiary_id' => $beneficiary->id,
+                        'amount' => $amount,
+                        'currency' => strtoupper((string) $validated['currency']),
+                        'transfer_date' => $validated['transferDate'],
+                        'reference_number' => $validated['referenceNumber'],
+                        'notes' => $validated['notes'],
+                        'authorized_by' => $validated['authorizedBy'],
+                        'bank_email' => $bankAccount->bank_email,
+                        'status' => 'draft',
+                    ]);
+                } catch (QueryException $e) {
+                    $attempts++;
+                    $isTransferNumberCollision = str_contains($e->getMessage(), 'transfers_transfer_number_unique')
+                        || str_contains($e->getMessage(), 'transfer_number');
 
-            $bankAccount->update([
-                'balance' => max(0, (float) $bankAccount->balance - $amount),
-            ]);
+                    if (! $isTransferNumberCollision || $attempts >= 5) {
+                        throw $e;
+                    }
+                }
+            }
 
             $transfer->update([
                 'document_hash' => $this->documentHash($transfer),
             ]);
 
-            app(AuditLogger::class)->logCustom($transfer, 'transfer_create', [
-                'new_values' => [
-                    'bank_account_id' => $transfer->bank_account_id,
-                    'beneficiary_id' => $transfer->beneficiary_id,
-                    'amount' => $transfer->amount,
-                    'currency' => $transfer->currency,
-                    'transfer_date' => $transfer->transfer_date?->toDateString(),
-                    'reference_number' => $transfer->reference_number,
-                ],
-                'metadata' => [
-                    'status' => $transfer->status,
-                ],
-            ]);
+            app(AuditLogger::class)->logCreate($transfer);
 
             app(ActivityLogger::class)->log([
                 'user_id' => $user->id,
@@ -86,10 +86,6 @@ class TransferService
             return $transfer;
         });
 
-        DB::afterCommit(function () use ($transfer): void {
-            $this->sendToBank($transfer);
-        });
-
         return $transfer;
     }
 
@@ -100,16 +96,27 @@ class TransferService
         try {
             Mail::to((string) $transfer->bank_email)->send(new TransferRequestMail($transfer));
 
-            $transfer->update(['status' => 'emailed']);
+            $previousStatus = $transfer->status;
+            $transfer->update([
+                'status' => 'sent',
+                'sent_at' => now(),
+                'sent_by' => auth()->id() ?? $transfer->user_id,
+                'sent_to' => $transfer->bank_email,
+            ]);
 
-            app(AuditLogger::class)->logCustom($transfer, 'transfer_emailed', [
-                'old_values' => ['status' => 'submitted'],
-                'new_values' => ['status' => 'emailed'],
+            app(AuditLogger::class)->logCustom($transfer, 'sent_email', [
+                'old_values' => ['status' => $previousStatus],
+                'new_values' => [
+                    'status' => 'sent',
+                    'sent_at' => $transfer->sent_at?->toIso8601String(),
+                    'sent_to' => $transfer->sent_to,
+                    'transfer_number' => $transfer->transfer_number,
+                ],
             ]);
 
             app(ActivityLogger::class)->log([
                 'user_id' => $transfer->user_id,
-                'action' => 'transfer_emailed',
+                'action' => 'transfer_sent_email',
                 'description' => 'Transfer emailed to bank',
                 'entity_type' => Transfer::class,
                 'entity_id' => $transfer->id,
@@ -144,6 +151,7 @@ class TransferService
     {
         $payload = [
             'id' => $transfer->id,
+            'transfer_number' => $transfer->transfer_number,
             'user_id' => $transfer->user_id,
             'bank_account_id' => $transfer->bank_account_id,
             'beneficiary_id' => $transfer->beneficiary_id,

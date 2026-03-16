@@ -269,13 +269,11 @@ function statusBadge(status: JournalEntryStatus) {
 }
 
 function JournalsEmptyState({
-  isRtl,
   t,
   hasSearch = false,
   searchQuery = '',
   onClearSearch,
 }: {
-  isRtl: boolean;
   t: (en: string, ar: string) => string;
   hasSearch?: boolean;
   searchQuery?: string;
@@ -455,7 +453,6 @@ export default function Journals({ journals = [] }: { journals?: JournalEntry[] 
 
             {filteredJournals.length === 0 && (
               <JournalsEmptyState
-                isRtl={isRtl}
                 t={t}
                 hasSearch={active}
                 searchQuery={filters.search}

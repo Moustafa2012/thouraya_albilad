@@ -6,6 +6,8 @@ enum UserRole: string
 {
     case SUPER_ADMIN = 'super_admin';
     case ADMIN = 'admin';
+    case MANAGER = 'manager';
+    case USER = 'user';
     case VISITOR = 'visitor';
 
     /**
@@ -30,6 +32,13 @@ enum UserRole: string
                 UserPermission::MANAGE_CONTENT,
                 UserPermission::VIEW_ANALYTICS,
             ],
+            self::MANAGER => [
+                UserPermission::ADMIN_ACCESS,
+                UserPermission::MANAGE_USERS,
+                UserPermission::MANAGE_CONTENT,
+                UserPermission::VIEW_ANALYTICS,
+            ],
+            self::USER => [],
             self::VISITOR => [],
         };
     }
@@ -39,6 +48,8 @@ enum UserRole: string
         return match ($this) {
             self::SUPER_ADMIN => 'Super Admin',
             self::ADMIN => 'Admin',
+            self::MANAGER => 'Manager',
+            self::USER => 'User',
             self::VISITOR => 'Visitor',
         };
     }

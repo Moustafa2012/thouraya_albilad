@@ -104,6 +104,7 @@ export interface CommonFormFields {
   correspondentBank: string;
   correspondentSwift: string;
   // Step 5: Settings (common)
+  openingBalance: string;
   isDefault: boolean;
   isActive: boolean;
   notes: string;
@@ -154,12 +155,12 @@ export type FormData = BankAccountFormData;
 
 export const INITIAL_FORM_DATA: BankAccountFormData = {
   // Common
-  accountCategory: '',
+  accountCategory: 'business',
   holderNameAr: '',
   holderNameEn: '',
   holderPhone: '',
   holderEmail: '',
-  bankCountry: '',
+  bankCountry: 'SA',
   bankName: '',
   bankSwift: '',
   branchName: '',
@@ -172,7 +173,7 @@ export const INITIAL_FORM_DATA: BankAccountFormData = {
   bankRelationshipDuration: '',
   accountManagerName: '',
   preferredLanguage: '',
-  accountType: '',
+  accountType: 'corporate',
   accountNumber: '',
   iban: '',
   currency: 'SAR',
@@ -186,6 +187,7 @@ export const INITIAL_FORM_DATA: BankAccountFormData = {
   expectedTransactionValue: '',
   correspondentBank: '',
   correspondentSwift: '',
+  openingBalance: '0',
   isDefault: false,
   isActive: true,
   notes: '',

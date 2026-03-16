@@ -81,7 +81,9 @@ vi.mock('@/components/ui/select', () => ({
     SelectTrigger: ({ children }: any) => <div>{children}</div>,
     SelectValue: ({ placeholder }: any) => <span>{placeholder}</span>,
     SelectContent: ({ children }: any) => <div>{children}</div>,
-    SelectItem: ({ value, children }: any) => <option value={value}>{children}</option>,
+    SelectItem: ({ value, children }: any) => (
+        <option value={value}>{typeof children === 'string' ? children : String(value)}</option>
+    ),
 }));
 
 vi.mock('@/components/ui/phone-input', () => ({
@@ -102,7 +104,7 @@ describe('StepBank', () => {
     const mockSet = vi.fn();
 
     const defaultProps = {
-        formData: INITIAL_FORM_DATA,
+        formData: { ...INITIAL_FORM_DATA, bankCountry: '' },
         errors: {},
         isRtl: false,
         t: mockT,

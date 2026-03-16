@@ -2,6 +2,7 @@
 
 import { Bell, FileText, Settings2, ShieldCheck, Star, Zap } from 'lucide-react';
 import { useId } from 'react';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -34,7 +35,7 @@ function ToggleCard({ id, icon: Icon, title, description, checked, onCheckedChan
   );
 }
 
-export function StepSettings({ formData, isRtl, t, set }: CommonStepProps) {
+export function StepSettings({ formData, errors, isRtl, t, set }: CommonStepProps) {
   const uid = useId();
   const notesLength = formData.notes.length;
   const notesApproaching = notesLength > 450;
@@ -60,6 +61,26 @@ export function StepSettings({ formData, isRtl, t, set }: CommonStepProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label
+            htmlFor={`${uid}-opening-balance`}
+            className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+          >
+            {t('Opening Balance', 'الرصيد الافتتاحي')}
+          </Label>
+          <Input
+            id={`${uid}-opening-balance`}
+            value={formData.openingBalance}
+            onChange={(e) => set('openingBalance', e.target.value)}
+            inputMode="decimal"
+            placeholder={t('e.g. 750,000.00', 'مثال: 750,000.00')}
+            className="h-10 bg-background/60 text-sm backdrop-blur-sm"
+            aria-invalid={Boolean(errors.openingBalance)}
+          />
+          {errors.openingBalance && (
+            <p className="text-xs text-destructive">{errors.openingBalance}</p>
+          )}
+        </div>
         <div className="space-y-1.5">
           <Label htmlFor={`${uid}-purpose`} className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             <FileText className="size-3.5" aria-hidden="true" />
