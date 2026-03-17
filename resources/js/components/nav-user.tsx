@@ -3,9 +3,6 @@ import {
     BadgeCheck,
     Bell,
     ChevronsUpDown,
-    CreditCard,
-    LogOut,
-    Settings,
     Shield,
     Sparkles,
     User as UserIcon,
@@ -14,8 +11,6 @@ import { useLanguage } from '@/components/language-provider';
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,

@@ -24,9 +24,11 @@ class PasswordController extends Controller
     public function update(PasswordUpdateRequest $request): RedirectResponse
     {
         $request->user()->update([
-            'password' => $request->password,
+            'password'            => $request->password,
+            'password_changed_at' => now(),
+            'force_password_change' => false,
         ]);
 
-        return back();
+        return back()->with('success', 'Password updated successfully.');
     }
 }

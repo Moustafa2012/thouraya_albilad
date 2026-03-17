@@ -15,28 +15,26 @@ trait ProfileValidationRules
     protected function profileRules(?int $userId = null): array
     {
         return [
-            'name' => $this->nameRules(),
-            'username' => $this->usernameRules($userId),
-            'email' => $this->emailRules($userId),
-            'phone' => $this->phoneRules($userId),
-            'avatar' => $this->avatarRules(),
+            'name'         => $this->nameRules(),
+            'username'     => $this->usernameRules($userId),
+            'email'        => $this->emailRules($userId),
+            'phone'        => $this->phoneRules($userId),
+            'avatar'       => $this->avatarRules(),
             'date_of_birth' => $this->dateOfBirthRules(),
-            'gender' => $this->genderRules(),
-            'nationality' => $this->nationalityRules(),
-            'timezone' => $this->timezoneRules(),
-            'locale' => $this->localeRules(),
-            'bio' => $this->bioRules(),
-            'address' => $this->addressRules(),
-            'city' => $this->cityRules(),
-            'state' => $this->stateRules(),
-            'country' => $this->countryRules(),
-            'postal_code' => $this->postalCodeRules(),
+            'gender'       => $this->genderRules(),
+            'nationality'  => $this->nationalityRules(),
+            'timezone'     => $this->timezoneRules(),
+            'locale'       => $this->localeRules(),
+            'bio'          => $this->bioRules(),
+            'address'      => $this->addressRules(),
+            'city'         => $this->cityRules(),
+            'state'        => $this->stateRules(),
+            'country'      => $this->countryRules(),
+            'postal_code'  => $this->postalCodeRules(),
         ];
     }
 
     /**
-     * Get the validation rules used to validate user names.
-     *
      * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
      */
     protected function nameRules(): array
@@ -45,8 +43,6 @@ trait ProfileValidationRules
     }
 
     /**
-     * Get the validation rules used to validate usernames.
-     *
      * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
      */
     protected function usernameRules(?int $userId = null): array
@@ -54,7 +50,8 @@ trait ProfileValidationRules
         return [
             'required',
             'string',
-            'max:255',
+            'max:50',
+            'alpha_dash',
             $userId === null
                 ? Rule::unique(User::class)
                 : Rule::unique(User::class)->ignore($userId),
@@ -62,8 +59,6 @@ trait ProfileValidationRules
     }
 
     /**
-     * Get the validation rules used to validate user emails.
-     *
      * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
      */
     protected function emailRules(?int $userId = null): array
@@ -107,7 +102,7 @@ trait ProfileValidationRules
      */
     protected function dateOfBirthRules(): array
     {
-        return ['nullable', 'date'];
+        return ['nullable', 'date', 'before:today'];
     }
 
     /**
@@ -131,7 +126,7 @@ trait ProfileValidationRules
      */
     protected function timezoneRules(): array
     {
-        return ['nullable', 'string', 'max:50'];
+        return ['nullable', 'string', 'timezone:all'];
     }
 
     /**

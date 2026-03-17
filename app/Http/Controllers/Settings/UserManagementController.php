@@ -18,6 +18,7 @@ class UserManagementController extends Controller
         abort_unless($request->user()->can('manage:users'), 403);
 
         $users = User::query()
+            ->withTrashed(false)
             ->latest()
             ->get([
                 'id',
@@ -28,7 +29,12 @@ class UserManagementController extends Controller
                 'is_active',
                 'is_banned',
                 'ban_reason',
+                'banned_at',
                 'email_verified_at',
+                'last_login_at',
+                'last_login_ip',
+                'login_attempts',
+                'locked_until',
                 'created_at',
             ]);
 
@@ -48,12 +54,32 @@ class UserManagementController extends Controller
 
         $data = $request->validated();
 
-        if (array_key_exists('role', $data) && $data['role'] === UserRole::SUPER_ADMIN->value && ! $request->user()->hasRole(UserRole::SUPER_ADMIN)) {
+        // Only super admins can assign the Super Admin role
+        if (
+            array_key_exists('role', $data) &&
+            $data['role'] === UserRole::SUPER_ADMIN->value &&
+            ! $request->user()->hasRole(UserRole::SUPER_ADMIN)
+        ) {
             return back()->with('error', 'Only super admins can assign the Super Admin role.');
         }
 
-        if (array_key_exists('is_banned', $data) && $data['is_banned'] === false) {
-            $data['ban_reason'] = null;
+        // When banning a user, record who banned them and when
+        if (array_key_exists('is_banned', $data)) {
+            if ($data['is_banned'] === true && ! $managedUser->is_banned) {
+                $data['banned_at'] = now();
+                $data['banned_by'] = $request->user()->id;
+            } elseif ($data['is_banned'] === false) {
+                // Clear all ban-related fields when unbanning
+                $data['ban_reason'] = null;
+                $data['banned_at'] = null;
+                $data['banned_by'] = null;
+            }
+        }
+
+        // When locking/unlocking account, reset login attempts
+        if (array_key_exists('is_active', $data) && $data['is_active'] === true) {
+            $data['login_attempts'] = 0;
+            $data['locked_until'] = null;
         }
 
         $managedUser->fill($data);

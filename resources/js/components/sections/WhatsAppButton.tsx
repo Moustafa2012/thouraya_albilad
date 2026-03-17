@@ -173,7 +173,8 @@ export default function WhatsAppButton() {
                   <motion.div
                     animate={{ x: hoveredIndex === index ? 2 : 0, opacity: hoveredIndex === index ? 1 : 0.3 }}
                     transition={{ duration: 0.15 }}
-                    style={{ color: WHATSAPP_GREEN, transform: language === "ar" ? "scaleX(-1)" : undefined }}
+                    className="rtl:rotate-180"
+                    style={{ color: WHATSAPP_GREEN }}
                   >
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                       <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

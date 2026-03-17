@@ -19,10 +19,30 @@ class UpdateUserManagementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role' => ['nullable', 'string', Rule::in(array_map(fn (UserRole $r) => $r->value, UserRole::cases()))],
-            'is_active' => ['nullable', 'boolean'],
-            'is_banned' => ['nullable', 'boolean'],
-            'ban_reason' => ['nullable', 'string', 'max:5000'],
+            'role' => [
+                'nullable',
+                'string',
+                Rule::in(array_map(fn (UserRole $r) => $r->value, UserRole::cases())),
+            ],
+            'is_active'  => ['nullable', 'boolean'],
+            'is_banned'  => ['nullable', 'boolean'],
+            'ban_reason' => [
+                'nullable',
+                'string',
+                'max:5000',
+                // Ban reason is required when banning a user
+                Rule::requiredIf(fn () => $this->boolean('is_banned') === true),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'ban_reason.required' => 'A ban reason is required when banning a user.',
         ];
     }
 }

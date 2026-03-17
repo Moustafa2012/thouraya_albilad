@@ -49,13 +49,19 @@ class User extends Authenticatable
         'is_super_admin',
         'last_login_at',
         'last_login_ip',
+        'last_login_user_agent',
+        'last_login_device',
+        'last_login_location',
         'login_attempts',
         'locked_until',
         'password_changed_at',
+        'force_password_change',
         'two_factor_enabled',
         'phone_verified_at',
         'email_verification_token',
         'phone_verification_token',
+        'email_verification_sent_at',
+        'phone_verification_sent_at',
         'company_id',
         'department_id',
         'job_title',
@@ -92,9 +98,12 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
+            'email_verification_sent_at' => 'datetime',
+            'phone_verification_sent_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'two_factor_enabled' => 'boolean',
+            'force_password_change' => 'boolean',
             'role' => UserRole::class,
             'permissions' => 'array',
             'is_active' => 'boolean',
@@ -123,6 +132,16 @@ class User extends Authenticatable
     public function loginHistory()
     {
         return $this->hasMany(UserLoginHistory::class);
+    }
+
+    public function sessions()
+    {
+        return $this->hasMany(Session::class);
+    }
+
+    public function deviceTokens()
+    {
+        return $this->hasMany(UserDeviceToken::class);
     }
 
     public function activityLogs()

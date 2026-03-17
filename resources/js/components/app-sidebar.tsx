@@ -8,7 +8,6 @@ import {
     CreditCard,
     FileClock,
     LayoutGrid,
-    UserCog,
     Users,
     ChevronDown,
 } from 'lucide-react';
@@ -29,6 +28,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
+import Welcome from '@/pages/welcome';
 import AppLogo from './app-logo';
 
 interface NavSection {
@@ -85,9 +85,6 @@ const getNavSections = (t: (en: string, ar: string) => string, isSuperAdmin = fa
     {
         label: t('System', 'النظام'),
         items: [
-            ...(isSuperAdmin
-                ? [{ title: t('User Management', 'إدارة المستخدمين'), href: '/settings/users', icon: UserCog as typeof FileClock }]
-                : []),
             {
                 title: t('Audit Logs', 'سجلات التدقيق'),
                 href: '/audit-logs',
@@ -129,9 +126,6 @@ const getMainNavItems = (t: (en: string, ar: string) => string, isSuperAdmin = f
         href: '/reports',
         icon: BarChart3,
     },
-    ...(isSuperAdmin
-        ? [{ title: t('User Management', 'إدارة المستخدمين'), href: '/settings/users', icon: UserCog }]
-        : []),
     {
         title: t('Audit Logs', 'سجلات التدقيق'),
         href: '/audit-logs',
@@ -167,13 +161,13 @@ export function AppSidebar({ useSections = false, className }: AppSidebarProps) 
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link
-                                href={dashboard().url}
+                                href={"/"}
                                 prefetch
                                 className="group"
                             >
                                 <AppLogo />
                                 <span className="sr-only">
-                                    {t('Go to Dashboard', 'الذهاب إلى لوحة التحكم')}
+                                    {t('Home', 'الرئيسية')}
                                 </span>
                             </Link>
                         </SidebarMenuButton>

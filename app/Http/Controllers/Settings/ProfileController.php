@@ -19,9 +19,22 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+
         return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'sessions' => $user->sessions()
+                ->orderBy('last_activity', 'desc')
+                ->take(10)
+                ->get(),
+            'loginHistory' => $user->loginHistory()
+                ->orderBy('login_at', 'desc')
+                ->take(20)
+                ->get(),
+            'deviceTokens' => $user->deviceTokens()
+                ->orderBy('last_used_at', 'desc')
+                ->get(),
         ]);
     }
 
@@ -30,7 +43,13 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $data = $request->validated();
+
+        // Track the IP address of the update
+        $data['updated_ip'] = $request->ip();
+        $data['updated_by'] = $request->user()->id;
+
+        $request->user()->fill($data);
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;

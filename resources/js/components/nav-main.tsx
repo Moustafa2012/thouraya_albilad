@@ -35,7 +35,7 @@ export function NavMain({
     const { isCurrentUrl } = useCurrentUrl();
     const { t, direction } = useLanguage();
 
-    const defaultLabel = t('Platform', 'المنصة');
+    const defaultLabel = t('transfers', 'التحويلات');
     const groupLabel = label || defaultLabel;
 
     const isParentActive = (item: NavItem): boolean => {

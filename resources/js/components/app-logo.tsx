@@ -3,11 +3,10 @@ import AppLogoIcon from './app-logo-icon';
 
 interface AppLogoProps {
     collapsed?: boolean;
-    showSubtitle?: boolean;
 }
 
-export default function AppLogo({ collapsed = false, showSubtitle = true }: AppLogoProps) {
-    const { t, } = useLanguage();
+export default function AppLogo({ collapsed = false }: AppLogoProps) {
+    const { t } = useLanguage();
 
     return (
         <div className="flex items-center gap-3 transition-all duration-300">
@@ -18,11 +17,6 @@ export default function AppLogo({ collapsed = false, showSubtitle = true }: AppL
                     <span className="truncate text-sm font-semibold leading-tight text-sidebar-foreground">
                         {t('Thouraya Albilad', 'ثريا البلاد ')}
                     </span>
-                    {showSubtitle && (
-                        <span className="truncate text-xs leading-tight text-sidebar-muted-foreground">
-                            {t('Trading Company', 'للتجارة')}
-                        </span>
-                    )}
                 </div>
             )}
         </div>

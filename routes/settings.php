@@ -44,4 +44,7 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     Route::put('settings/smtp', [SmtpSettingsController::class, 'update'])
         ->middleware(['role:admin', 'permission:settings:advanced', 'can:settings:advanced'])
         ->name('settings.smtp.update');
+    Route::post('settings/smtp/test', [SmtpSettingsController::class, 'test'])
+        ->middleware(['role:admin', 'permission:settings:advanced', 'can:settings:advanced'])
+        ->name('settings.smtp.test');
 });
